@@ -566,7 +566,7 @@ value of \tcode{x.get_id()} prior to the start of construction.
 \end{itemdecl}
 
 \begin{itemdescr}
-If \tcode{joinable()}, calls \tcode{std::terminate()}. Otherwise, has no effects.
+If joinable(), calls terminate(), otherwise no effects.
 \enternote Either implicitly detaching or joining a \tcode{joinable()} thread in its
 destructor could result in difficult to debug correctness (for detach) or performance
 (for join) bugs encountered only when an exception is raised. Thus the programmer must
@@ -584,7 +584,7 @@ thread& operator=(thread&& x) noexcept;
 
 \begin{itemdescr}
 \pnum
-\effects If \tcode{joinable()}, calls \tcode{std::terminate()}. Otherwise, assigns the
+\effects If \tcode{joinable()}, calls \tcode{terminate()}. Otherwise, assigns the
 state of \tcode{x} to \tcode{*this} and sets \tcode{x} to a default constructed state.
 
 \pnum
@@ -3008,7 +3008,7 @@ second, the provider releases its shared state.
 \end{itemize}
 
 \pnum
-A shared state is \defn{ready} only if it holds a value or an exception ready for
+An shared state is \defn{ready} only if it holds a value or an exception ready for
 retrieval.
 Waiting for a shared state to become ready may invoke code to compute the result on 
 the waiting thread if so specified in the description of the class or function that creates

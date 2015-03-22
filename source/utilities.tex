@@ -965,7 +965,7 @@ namespace std {
     template <class Alloc>
       tuple(allocator_arg_t, const Alloc& a, const Types&...);
     template <class Alloc, class... UTypes>
-      tuple(allocator_arg_t, const Alloc& a, UTypes&&...);
+      tuple(allocator_arg_t, const Alloc& a, const UTypes&&...);
     template <class Alloc>
       tuple(allocator_arg_t, const Alloc& a, const tuple&);
     template <class Alloc>
@@ -991,7 +991,7 @@ namespace std {
     template <class U1, class U2>
       tuple& operator=(const pair<U1, U2>&);    // iff \tcode{sizeof...(Types) == 2}
     template <class U1, class U2>
-      tuple& operator=(pair<U1, U2>&&);         // iff \tcode{sizeof...(Types) == 2}
+      tuple& operator=(pair<U1, U2>&&) noexcept;         // iff \tcode{sizeof...(Types) == 2}
 
     // \ref{tuple.swap}, \tcode{tuple} swap
     void swap(tuple&) noexcept(@\seebelow@);
@@ -1184,7 +1184,7 @@ template <class Alloc>
 template <class Alloc>
   tuple(allocator_arg_t, const Alloc& a, const Types&...);
 template <class Alloc, class... UTypes>
-  tuple(allocator_arg_t, const Alloc& a, UTypes&&...);
+  tuple(allocator_arg_t, const Alloc& a, const UTypes&&...);
 template <class Alloc>
   tuple(allocator_arg_t, const Alloc& a, const tuple&);
 template <class Alloc>
@@ -3013,7 +3013,7 @@ static pointer pointer_traits<T*>::pointer_to(@\seebelow@ r) noexcept;
 
 \begin{itemdescr}
 \remark if \tcode{element_type} is (possibly cv-qualified) \tcode{void}, the type of
-\tcode{r} is unspecified; otherwise, it is \tcode{element_type\&}.
+\tcode{r} is unspecified; otherwise, it is \tcode{T\&}.
 
 \returns The first template function returns a dereferenceable pointer to \tcode{r}
 obtained by calling \tcode{Ptr::pointer_to(r)}; an instantiation of this function is
@@ -4772,7 +4772,7 @@ namespace std {
     unique_ptr(pointer p, @\seebelow@ d) noexcept;
     unique_ptr(pointer p, @\seebelow@ d) noexcept;
     unique_ptr(unique_ptr&& u) noexcept;
-    constexpr unique_ptr(nullptr_t) noexcept : unique_ptr() { }
+    constexpr unique_ptr(nullptr_t) : unique_ptr() { }
 
     // destructor
     ~unique_ptr();
@@ -8478,7 +8478,6 @@ namespace std {
 
   // \ref{meta.trans.other}, other transformations:
   template <std::size_t Len, std::size_t Align> struct aligned_storage;
-  template <std::size_t Len, class... Types> struct aligned_union;
   template <class T> struct decay;
   template <bool, class T = void> struct enable_if;
   template <bool, class T, class F> struct conditional;
@@ -9367,16 +9366,16 @@ assert((is_same<remove_all_extents<int[][3]>::type, int>::value));
  suitable for use as uninitialized storage for any object whose size
  is at most \textit{Len} and whose alignment is a divisor of \textit{Align}. \\ \rowsep
 
-\tcode{template <std::size_t Len,\br
+\tcode{template <std::size_t Len,}\br
   class... Types>\br
-  struct aligned_union;}
+  struct aligned_union;
   &
   At least one type is provided.
   &
   The member typedef \tcode{type} shall be a POD type suitable for use as
   uninitialized storage for any object whose type is listed in \tcode{Types};
   its size shall be at least \tcode{Len}. The static member \tcode{alignment_value}
-  shall be an integral constant of type \tcode{std::size_t} whose value is the
+  shall be an integral cosntant of type \tcode{std::size_t} whose value is the
   strictest alignment of all types listed in \tcode{Types}.
   \\ \rowsep
 
@@ -11219,7 +11218,7 @@ namespace std {
         const scoped_allocator_adaptor<OuterA2, InnerAllocs...>& other) noexcept;
     template <class OuterA2>
       scoped_allocator_adaptor(
-        scoped_allocator_adaptor<OuterA2, InnerAllocs...>&& other) noexcept;
+        const scoped_allocator_adaptor<OuterA2, InnerAllocs...>&& other) noexcept;
 
     ~scoped_allocator_adaptor();
 
@@ -11390,8 +11389,8 @@ from \tcode{other}.
 \indexlibrary{\idxcode{scoped_allocator_adaptor}!constructor}%
 \begin{itemdecl}
 template <class OuterA2>
-  scoped_allocator_adaptor(scoped_allocator_adaptor<OuterA2,
-                                                    InnerAllocs...>&& other) noexcept;
+  scoped_allocator_adaptor(const scoped_allocator_adaptor<OuterA2,
+                                                          InnerAllocs...>&& other) noexcept;
 \end{itemdecl}
 
 \begin{itemdescr}
@@ -11440,7 +11439,7 @@ outer_allocator_type& outer_allocator() noexcept;
 
 \begin{itemdescr}
 \pnum
-\returns \tcode{static_cast<OuterAlloc\&>(*this)}.
+\returns \tcode{static_cast<Outer\&>(*this)}.
 \end{itemdescr}
 
 \indexlibrary{\idxcode{scoped_allocator_adaptor}!\idxcode{outer_allocator}}%
@@ -11451,7 +11450,7 @@ const outer_allocator_type& outer_allocator() const noexcept;
 
 \begin{itemdescr}
 \pnum
-\returns \tcode{static_cast<const OuterAlloc\&>(*this)}.
+\returns \tcode{static_cast<const Outer\&>(*this)}.
 \end{itemdescr}
 
 \indexlibrary{\idxcode{scoped_allocator_adaptor}!\idxcode{allocate}}%

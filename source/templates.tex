@@ -1866,11 +1866,11 @@ typedef zip<short>::with<unsigned short, unsigned>::type T2;
 
 template<class ... Args>
   void g(Args ... args) {               // OK: \tcode{Args} is expanded by the function parameter pack \tcode{args}
-    f(const_cast<const Args*>(&args)...); // OK: ``\tcode{Args}'' and ``\tcode{args}'' are expanded
-    f(5 ...);                             // error: pattern does not contain any parameter packs
-    f(args);                              // error: parameter pack ``\tcode{args}'' is not expanded
-    f(h(args ...) + args ...);            // OK: first ``\tcode{args}'' expanded within \tcode{h}, second
-                                          // ``\tcode{args}'' expanded within \tcode{f}
+  f(const_cast<const Args*>(&args)...); // OK: ``\tcode{Args}'' and ``\tcode{args}'' are expanded
+  f(5 ...);                             // error: pattern does not contain any parameter packs
+  f(args);                              // error: parameter pack ``\tcode{args}'' is not expanded
+  f(h(args ...) + args ...);            // OK: first ``\tcode{args}'' expanded within \tcode{h}, second
+                                        // ``\tcode{args}'' expanded within \tcode{f}
   }
 \end{codeblock}
 

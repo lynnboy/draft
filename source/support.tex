@@ -1400,7 +1400,7 @@ by throwing an exception that is caught in
 \tcode{main()}.}
 
 If control leaves a registered function called by \tcode{exit} because the function does
-not provide a handler for a thrown exception, \tcode{std::terminate()} shall be called~(\ref{except.terminate}).%
+not provide a handler for a thrown exception, \tcode{terminate()} shall be called~(\ref{except.terminate}).%
 \indexlibrary{\idxcode{terminate}}
 
 \item
@@ -1481,7 +1481,7 @@ reverse order of their registration, except that a function shall be called afte
 previously registered functions that had already been called at the time it was
 registered. Objects shall not be destroyed as a result of calling \tcode{quick_exit}.
 If control leaves a registered function called by \tcode{quick_exit} because the
-function does not provide a handler for a thrown exception, \tcode{std::terminate()} shall
+function does not provide a handler for a thrown exception, \tcode{terminate()} shall
 be called.%
 \indexlibrary{\idxcode{terminate}}
 \enternote \tcode{at_quick_exit} may call a registered function from a different thread
@@ -2779,8 +2779,8 @@ bool uncaught_exception() noexcept;
 after
 the current thread has initialized
 an exception object~(\ref{except.throw})
-until a handler for the exception (including \tcode{std::unexpected()}
-or \tcode{std::terminate()}) is activated~(\ref{except.handle}).
+until a handler for the exception (including \tcode{unexpected()}
+or \tcode{terminate()}) is activated~(\ref{except.handle}).
 \enternote
 This includes stack unwinding~(\ref{except.ctor}).
 \exitnote
@@ -2792,7 +2792,7 @@ When
 returns
 \tcode{true},
 throwing an exception can result in a call of
-\tcode{std::terminate()}~(\ref{except.terminate}).
+\tcode{terminate()}~(\ref{except.terminate}).
 \end{itemdescr}
 
 \rSec2[propagation]{Exception propagation}
@@ -2949,7 +2949,7 @@ nested_exception() noexcept;
 
 \begin{itemdescr}
 \pnum
-\effects If \tcode{nested_ptr()} returns a null pointer, the function calls \tcode{std::terminate()}.
+\effects If \tcode{nested_ptr()} returns a null pointer, the function calls \tcode{terminate()}.
 Otherwise, it throws the stored exception captured by \tcode{*this}.
 \end{itemdescr}
 
