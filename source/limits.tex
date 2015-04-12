@@ -1,4 +1,4 @@
-\infannex{implimits}{Implementation quantities}
+\infannex{limits}{Implementation quantities}
 
 \begin{paras}
 
@@ -28,7 +28,7 @@ Nesting levels of conditional inclusion [256].
 \item%
 Pointer, array, and function declarators
 (in any combination)
-modifying a class, arithmetic,
+modifying an arithmetic, structure, union,
 or incomplete type in a declaration [256].
 \item%
 Nesting levels of parenthesized expressions within a full-expression [256].
@@ -58,7 +58,7 @@ Arguments in one macro invocation [256].
 \item%
 Characters in one logical source line [65\,536].
 \item%
-Characters in a string literal
+Characters in a character string literal or wide string literal
 (after concatenation) [65\,536].
 \item%
 Size of an object [262\,144].
@@ -74,20 +74,17 @@ statement (excluding those for any nested
 statements)
 [16\,384].
 \item%
-Data members in a single class [16\,384].
+Data members in a single class, structure, or union [16\,384].
 \item%
 Enumeration constants in a single enumeration [4\,096].
 \item%
-Levels of nested class definitions
+Levels of nested class, structure, or union definitions
 in a single
-\grammarterm{member-specification}
+\grammarterm{struct-declaration-list}
 [256].
 \item%
 Functions registered by
 \tcode{atexit()} [32].
-\item%
-Functions registered by
-\tcode{at_quick_exit()} [32].
 \item%
 Direct and indirect base classes [16\,384].
 \item%
@@ -112,20 +109,15 @@ Scope qualifications of one identifier [256].
 \item%
 Nested external specifications [1\,024].
 \item%
-Recursive \tcode{constexpr} function invocations [512].
-\item%
 Template arguments in a template declaration [1\,024].
 \item%
-Recursively nested template instantiations [1\,024].
+Recursively nested template instantiations [17].
 \item%
 Handlers per
 \tcode{try}
 block [256].
 \item%
 Throw specifications on a single function declaration [256].
-
-\item%
-Number of placeholders~(\ref{func.bind.place}) [10].
 
 \end{itemize}
 

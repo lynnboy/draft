@@ -1,29 +1,92 @@
-\normannex{charname}{Universal character names for identifier characters}
+\normannex{extendid}{Universal-character-names}
 
-\rSec1[charname.allowed]{Ranges of characters allowed}
+\pnum
+This clause lists the complete set of hexadecimal code values that are valid in
+universal-character-names in \Cpp identifiers~(\ref{lex.name}).
 
-\begin{codeblock}
-00A8, 00AA, 00AD, 00AF, 00B2-00B5, 00B7-00BA, 00BC-00BE, 00C0-00D6, 00D8-00F6, 00F8-00FF
+\pnum
+This table is reproduced unchanged from ISO/IEC PDTR 10176, produced by ISO/IEC
+JTC1/SC22/WG20, except that the ranges 0041-005a and 0061-007a designate the
+upper and lower case English alphabets, which are part of the basic source
+character set, and are not repeated in the table below.
 
-0100-167F, 1681-180D, 180F-1FFF
+Latin:
+00c0-00d6, 00d8-00f6, 00f8-01f5, 01fa-0217, 0250-02a8, 1e00-1e9a, 1ea0-1ef9
 
-200B-200D, 202A-202E, 203F-2040, 2054, 2060-206F
+Greek:
+0384, 0388-038a, 038c, 038e-03a1, 03a3-03ce, 03d0-03d6, 03da, 03dc, 03de, 03e0,
+03e2-03f3, 1f00-1f15, 1f18-1f1d, 1f20-1f45, 1f48-1f4d, 1f50-1f57, 1f59, 1f5b,
+1f5d, 1f5f-1f7d, 1f80-1fb4, 1fb6-1fbc, 1fc2-1fc4, 1fc6-1fcc, 1fd0-1fd3,
+1fd6-1fdb, 1fe0-1fec, 1ff2-1ff4, 1ff6-1ffc
 
-2070-218F, 2460-24FF, 2776-2793, 2C00-2DFF, 2E80-2FFF
+Cyrillic:
+0401-040d, 040f-044f, 0451-045c, 045e-0481, 0490-04c4, 04c7-04c8, 04cb-04cc,
+04d0-04eb, 04ee-04f5, 04f8-04f9
 
-3004-3007, 3021-302F, 3031-303F
+Armenian:
+0531-0556, 0561-0587
 
-3040-D7FF
+Hebrew:
+05d0-05ea, 05f0-05f4
 
-F900-FD3D, FD40-FDCF, FDF0-FE44, FE47-FFFD
+Arabic:
+0621-063a, 0640-0652, 0670-06b7, 06ba-06be, 06c0-06ce, 06e5-06e7
 
-10000-1FFFD, 20000-2FFFD, 30000-3FFFD, 40000-4FFFD, 50000-5FFFD,
-  60000-6FFFD, 70000-7FFFD, 80000-8FFFD, 90000-9FFFD, A0000-AFFFD,
-  B0000-BFFFD, C0000-CFFFD, D0000-DFFFD, E0000-EFFFD
-\end{codeblock}
+Devanagari:
+0905-0939, 0958-0962
 
-\rSec1[charname.disallowed]{Ranges of characters disallowed initially}
+Bengali:
+0985-098c, 098f-0990, 0993-09a8, 09aa-09b0, 09b2, 09b6-09b9, 09dc-09dd,
+09df-09e1, 09f0-09f1
 
-\begin{codeblock}
-0300-036F, 1DC0-1DFF, 20D0-20FF, FE20-FE2F
-\end{codeblock}
+Gurmukhi:
+0a05-0a0a, 0a0f-0a10, 0a13-0a28, 0a2a-0a30, 0a32-0a33, 0a35-0a36, 0a38-0a39
+0a59-0a5c, 0a5e
+
+Gujarati:
+0a85-0a8b, 0a8d, 0a8f-0a91, 0a93-0aa8, 0aaa-0ab0, 0ab2-0ab3, 0ab5-0ab9, 0ae0
+
+Oriya:
+0b05-0b0c, 0b0f-0b10, 0b13-0b28, 0b2a-0b30, 0b32-0b33, 0b36-0b39, 0b5c-0b5d,
+0b5f-0b61
+
+Tamil:
+0b85-0b8a, 0b8e-0b90, 0b92-0b95, 0b99-0b9a, 0b9c, 0b9e-0b9f, 0ba3-0ba4,
+0ba8-0baa, 0bae-0bb5, 0bb7-0bb9
+
+Telugu:
+0c05-0c0c, 0c0e-0c10, 0c12-0c28, 0c2a-0c33, 0c35-0c39, 0c60-0c61
+
+Kannada:
+0c85-0c8c, 0c8e-0c90, 0c92-0ca8, 0caa-0cb3, 0cb5-0cb9, 0ce0-0ce1
+
+Mlayalam:
+0d05-0d0c, 0d0e-0d10, 0d12-0d28, 0d2a-0d39, 0d60-0d61
+
+Thai:
+0e01-0e30, 0e32-0e33, 0e40-0e46, 0e4f-0e5b
+
+Lao:
+0e81-0e82, 0e84, 0e87, 0e88, 0e8a, 0e8d, 0e94-0e97, 0e99-0e9f, 0ea1-0ea3, 0ea5,
+0ea7, 0eaa, 0eab, 0ead-0eb0, 0eb2, 0eb3, 0ebd, 0ec0-0ec4, 0ec6
+
+Georgian:
+10a0-10c5, 10d0-10f6
+
+Hiragana:
+3041-3094, 309b-309e
+
+Katakana:
+30a1-30fe
+
+Bopmofo:
+3105-312c
+
+Hangul:
+1100-1159, 1161-11a2, 11a8-11f9
+
+CJK Unified Ideographs:
+f900-fa2d, fb1f-fb36, fb38-fb3c, fb3e, fb40-fb41, fb42-fb44, fb46-fbb1,
+fbd3-fd3f, fd50-fd8f, fd92-fdc7, fdf0-fdfb, fe70-fe72, fe74, fe76-fefc,
+ff21-ff3a, ff41-ff5a, ff66-ffbe, ffc2-ffc7, ffca-ffcf, ffd2-ffd7, ffda-ffdc,
+4e00-9fa5

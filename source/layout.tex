@@ -3,10 +3,10 @@
 %%--------------------------------------------------
 %%  set page size, type block size, type block position
 
-\setstocksize{11in}{8.5in}
-\settrimmedsize{11in}{8.5in}{*}
-\setlrmarginsandblock{1in}{1in}{*}
-\setulmarginsandblock{1in}{*}{1.618}
+\setstocksize{297mm}{210mm}
+\settrimmedsize{297mm}{209mm}{*}
+\setlrmarginsandblock{70pt}{55pt}{*}
+\setulmarginsandblock{43mm}{40mm}{*}
 
 %%--------------------------------------------------
 %%  set header and footer positions and sizes
@@ -28,9 +28,12 @@
 \counterwithin{Paras}{subsubsection}
 \counterwithin{Paras}{paragraph}
 \counterwithin{Paras}{subparagraph}
+\newcounter{ParasAlt}[Paras]
 \makeatletter
-\def\pnum{\addtocounter{Paras}{1}\noindent\llap{{%
+\def\pnum{\addtocounter{Paras}{1}\setcounter{ParasAlt}{0}\noindent\llap{{%
   \scriptsize\raisebox{.7ex}{\arabic{Paras}}}\hspace{\@totalleftmargin}\quad}}
+\def\pnumalt{\addtocounter{ParasAlt}{1}\noindent\llap{{%
+  \scriptsize\raisebox{.7ex}{\arabic{Paras}\alph{ParasAlt}}}\hspace{\@totalleftmargin}\quad}}
 \makeatother
 
 % Leave more room for section numbers in TOC

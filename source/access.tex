@@ -18,20 +18,13 @@ of the class in which it is declared.
 \indextext{access control!\idxcode{protected}}%
 \tcode{protected};
 that is, its name can be used only by members and friends
-of the class in which it is declared, by classes derived from that class, and by their
-friends (see~\ref{class.protected}).
+of the class in which it is declared, and by members and friends of classes
+derived from this class (see~\ref{class.protected}).
 \item
 \indextext{access control!\idxcode{public}}%
 \tcode{public};
 that is, its name can be used anywhere without access restriction.
 \end{itemize}
-
-\pnum
-A member of a class can also access all the names to which the class has access.
-A local class of a member function may access
-the same names that the member function itself may access.\footnote{Access
-permissions are thus transitive and cumulative to nested
-and local classes.}
 
 \pnum
 \indextext{access control!member name}%
@@ -53,20 +46,20 @@ by default.
 
 \begin{codeblock}
 class X {
-  int a;            // \tcode{X::a} is private by default
+    int a;			// \tcode{X::a} is private by default
 };
 
 struct S {
-  int a;            // \tcode{S::a} is public by default
+    int a;			// \tcode{S::a} is public by default
 };
 \end{codeblock}
-\exitexample
+\exitexampleb
 
 \pnum
 Access control is applied uniformly to all names, whether the names are
 referred to from declarations or expressions.
 \enternote
-Access control applies to names nominated by
+access control applies to names nominated by
 \tcode{friend}
 declarations~(\ref{class.friend}) and
 \grammarterm{using-declaration}{s}~(\ref{namespace.udecl}).
@@ -74,24 +67,26 @@ declarations~(\ref{class.friend}) and
 In the case of overloaded function names, access control is applied to
 the function selected by overload resolution.
 \enternote
-Because access control applies to names, if access control is applied to a
+because access control applies to names, if access control is applied to a
 typedef name, only the accessibility of the typedef name itself is considered.
 The accessibility of the entity referred to by the typedef is not considered.
 For example,
 
 \begin{codeblock}
-class A {
-  class B { };
+class A
+{
+	class B { };
 public:
-  typedef B BB;
+	typedef B BB;
 };
 
-void f() {
-  A::BB x;          // OK, typedef name \tcode{A::BB} is public
-  A::B y;           // access error, \tcode{A::B} is private
+void f()
+{
+	A::BB x;		// OK, typedef name \tcode{A::BB} is public
+	A::B y;			// access error, \tcode{A::B} is private
 }
 \end{codeblock}
-\exitnote
+\exitnoteb
 
 \pnum
 It should be noted that it is
@@ -108,48 +103,42 @@ established makes use of inaccessible member names or base classes,
 the construct is ill-formed.
 
 \pnum
-All access controls in Clause~\ref{class.access} affect the ability to access a class member
-name from the declaration of a particular
-entity, including parts of the declaration preceding the name of the entity
-being declared and, if the entity is a class, the definitions of members of
-the class appearing outside the class's \grammarterm{member-specification}{.}
-\enternote this access also applies to implicit references to constructors,
-conversion functions, and destructors. \exitnote
+All access controls in clause~\ref{class.access} affect the ability to access a class member name from a particular scope. The access control for names used in
+the definition of a class member that appears outside of the member's class
+definition is done as if the entire member definition appeared in the scope
+of the member's class. In particular, access controls apply as usual to
+member names accessed as part of a function return type, even though it is not
+possible to determine the acess privileges of that use without first parsing
+the rest of the function declarator. Similarly, access control for implicit
+calls to the constructors, the conversion functions, or the destructor called
+to create and destroy a static data member is performed as if these calls
+appeared in the scope of the member's class.
 \enterexample
 
 \begin{codeblock}
 class A {
-  typedef int I;    // private member
-  I f();
-  friend I g(I);
-  static I x;
-  template<int> struct Q;
-  template<int> friend struct R;
-protected:
-    struct B { };
+    typedef int I;		// private member
+    I f();
+    friend I g(I);
+    static I x;
 };
 
 A::I A::f() { return 0; }
 A::I g(A::I p = A::x);
 A::I g(A::I p) { return 0; }
 A::I A::x = 0;
-template<A::I> struct A::Q { };
-template<A::I> struct R { };
-
-struct D: A::B, A { };
 \end{codeblock}
 
-\pnum
 Here, all the uses of
 \tcode{A::I}
 are well-formed because
-\tcode{A::f},
-\tcode{A::x}, and \tcode{A::Q}
+\tcode{A::f}
+and \tcode{A::x}
 are members of class
 \tcode{A}
 and
 \tcode{g}
-and \tcode{R} are friends of class
+is a friend of class
 \tcode{A}.
 This implies, for example, that access checking on the first use of
 \tcode{A::I}
@@ -157,38 +146,34 @@ must be deferred until it is determined that this use of
 \tcode{A::I}
 is as the return type of a member of class
 \tcode{A}.
-Similarly, the use of \tcode{A::B} as a
-\grammarterm{base-specifier} is well-formed because \tcode{D}
-is derived from \tcode{A}, so checking of \grammarterm{base-specifier}{s}
-must be deferred until the entire \grammarterm{base-specifier-list} has been seen.
 \exitexample
+
+\pnum
+In the definition of a member of a nested class that appears outside of its
+class definition, the name of the member may be qualified by the names of
+enclosing classes of the member's class even if these names are private
+members of their enclosing classes.
+\enterexample
+
+\begin{codeblock}
+class D {
+    class E {
+	static int m;
+    };
+};
+int D::E::m = 1;		// OK, no access error on private \tcode{E}
+\end{codeblock}
+
+\exitexampleb
 
 \pnum
 \indextext{argument!access checking~and default}%
 \indextext{access control!default argument}%
-The names in a default argument~(\ref{dcl.fct.default}) are
+The names in a default argument expression~(\ref{dcl.fct.default}) are
 bound at the point of declaration, and access is checked at that
-point rather than at any points of use of the default argument.
+point rather than at any points of use of the default argument expression.
 Access checking for default arguments in function templates and in
-member functions of class templates is performed as described in~\ref{temp.inst}.
-
-\pnum
-The names in a default \grammarterm{template-argument}~(\ref{temp.param})
-have their access checked in the context in which they appear rather than at any
-points of use of the default \grammarterm{template-argument}. \enterexample
-\begin{codeblock}
-class B { };
-template <class T> class C {
-protected:
-  typedef T TT;
-};
-
-template <class U, class V = typename U::TT>
-class D : public U { };
-
-D <C<B> >* d;       // access error, C::TT is protected
-\end{codeblock}
-\exitexample
+member functions of class templates are performed as described in~\ref{temp.inst}.
 
 \rSec1[class.access.spec]{Access specifiers}%
 \indextext{access~specifier}
@@ -196,7 +181,7 @@ D <C<B> >* d;       // access error, C::TT is protected
 \pnum
 Member declarations can be labeled by an
 \grammarterm{access-specifier}
-(Clause~\ref{class.derived}):
+(clause~\ref{class.derived}):
 
 \begin{ncbnftab}
 access-specifier \terminal{:} member-specification\opt
@@ -212,34 +197,32 @@ is encountered.
 
 \begin{codeblock}
 class X {
-  int a;            // \tcode{X::a} is private by default: \tcode{class} used
+    int a;			// \tcode{X::a} is private by default: \tcode{class} used
 public:
-  int b;            // \tcode{X::b} is public
-  int c;            // \tcode{X::c} is public
+    int b;			// \tcode{X::b} is public
+    int c;			// \tcode{X::c} is public
 };
 \end{codeblock}
-\exitexample
-
-\pnum
+\exitexampleb
 Any number of access specifiers is allowed and no particular order is required.
 \enterexample
 
 \begin{codeblock}
 struct S {
-  int a;            // \tcode{S::a} is public by default: \tcode{struct} used
+    int a;			// \tcode{S::a} is public by default: \tcode{struct} used
 protected:
-  int b;            // \tcode{S::b} is protected
+    int b;			// \tcode{S::b} is protected
 private:
-  int c;            // \tcode{S::c} is private
+    int c;			// \tcode{S::c} is private
 public:
-  int d;            // \tcode{S::d} is public
+    int d;			// \tcode{S::d} is public
 };
 \end{codeblock}
-\exitexample
+\exitexampleb
 
 \pnum
-\enternote The effect of access control on the order of allocation
-of data members is described in~\ref{class.mem}.\exitnote
+The order of allocation of data members with separate
+\grammarterm{access-specifier} labels is unspecified~(\ref{class.mem}).
 
 \pnum
 When a member is redeclared within its class definition,
@@ -249,33 +232,12 @@ be the same as at its initial declaration.
 
 \begin{codeblock}
 struct S {
-  class A;
-  enum E : int;
+	class A;
 private:
-  class A { };        // error: cannot change access
-  enum E: int { e0 }; // error: cannot change access
+	class A { };		// error: cannot change access
 };
 \end{codeblock}
-\exitexample
-
-\pnum
-\enternote
-In a derived class, the lookup of a base class name will find the
-injected-class-name instead of the name of the base class in the scope
-in which it was declared. The injected-class-name might be less accessible
-than the name of the base class in the scope in which it was declared.
-\exitnote
-
-\enterexample
-\begin{codeblock}
-class A { };
-class B : private A { };
-class C : public B {
-  A *p;             // error: injected-class-name \tcode{A} is inaccessible
-  ::A *q;           // OK
-};
-\end{codeblock}
-\exitexample
+\exitexampleb
 
 \rSec1[class.access.base]{Accessibility of base classes and base class members}%
 \indextext{access control!base~class}%
@@ -285,7 +247,7 @@ class C : public B {
 \indextext{base~class!\idxcode{public}}
 
 \pnum
-If a class is declared to be a base class (Clause~\ref{class.derived}) for another class using the
+If a class is declared to be a base class (clause~\ref{class.derived}) for another class using the
 \tcode{public}
 access specifier, the
 \tcode{public}
@@ -313,24 +275,22 @@ and
 \tcode{protected}
 members of the base class are accessible as
 \tcode{private}
-members of the derived class\footnote{As specified previously in Clause~\ref{class.access},
+members of the derived class\footnote{As specified previously in clause~\ref{class.access},
 private members of a base class remain inaccessible even to derived classes
 unless
 \tcode{friend}
-declarations within the base class definition are used to grant access explicitly.}.
+declarations within the base class declaration are used to grant access explicitly.}.
 
 \pnum
 In the absence of an
 \grammarterm{access-specifier}
 for a base class,
 \tcode{public}
-is assumed when the derived class is
-defined with the \grammarterm{class-key}
+is assumed when the derived class is declared
 \tcode{struct}
 and
 \tcode{private}
-is assumed when the class is
-defined with the \grammarterm{class-key}
+is assumed when the class is declared
 \tcode{class}.
 \enterexample
 
@@ -362,7 +322,7 @@ and a protected base of
 \tcode{D7}
 and
 \tcode{D8}.
-\exitexample
+\exitexampleb
 
 \pnum
 \enternote
@@ -376,107 +336,36 @@ For example,
 \begin{codeblock}
 class B {
 public:
-  int mi;                       // non-static member
-  static int si;                // static member
+	int mi;                 // nonstatic member
+	static int si;          // static member
 };
 class D : private B {
 };
 class DD : public D {
-  void f();
+	void f();
 };
 
 void DD::f() {
-  mi = 3;                       // error: \tcode{mi} is private in \tcode{D}
-  si = 3;                       // error: \tcode{si} is private in \tcode{D}
-  ::B  b;
-  b.mi = 3;                     // OK (\tcode{b.mi} is different from \tcode{this->mi})
-  b.si = 3;                     // OK (\tcode{b.si} is different from \tcode{this->si})
-  ::B::si = 3;                  // OK
-  ::B* bp1 = this;              // error: \tcode{B} is a private base class
-  ::B* bp2 = (::B*)this;        // OK with cast
-  bp2->mi = 3;                  // OK: access through a pointer to \tcode{B}.
+	mi = 3;                 // error: \tcode{mi} is private in \tcode{D}
+	si = 3;                 // error: \tcode{si} is private in \tcode{D}
+	::B  b;
+	b.mi = 3;               // OK (\tcode{b.mi} is different from \tcode{this->mi})
+	b.si = 3;               // OK (\tcode{b.si} is different from \tcode{this->si})
+	::B::si = 3;            // OK
+	::B* bp1 = this;        // error: \tcode{B} is a private base class
+	::B* bp2 = (::B*)this;  // OK with cast
+	bp2->mi = 3;            // OK: access through a pointer to \tcode{B}.
 }
 \end{codeblock}
-\exitnote
+\exitnoteb
 
 \pnum
-A base class
-\tcode{B}
-of
-\tcode{N}
-is
-\term{accessible}
-at
-\term{R},
-if
-\begin{itemize}
-\item
-an invented public member of
-\tcode{B}
-would be a public member of
-\tcode{N}, or
-\item
-\term{R}
-occurs in a member or friend of class
-\tcode{N},
-and an invented public member of
-\tcode{B}
-would be a private or protected member of
-\tcode{N}, or
-\item
-\term{R}
-occurs in a member or friend of a class
-\tcode{P}
-derived from
-\tcode{N},
-and an invented public member of
-\tcode{B}
-would be a private or protected member of
-\tcode{P}, or
-\item
-there exists a class
-\tcode{S}
-such that
-\tcode{B}
-is a base class of
-\tcode{S}
-accessible at
-\term{R}
-and
-\tcode{S}
-is a base class of
-\tcode{N}
-accessible at
-\term{R}.
-\end{itemize}
-
-\enterexample
-\begin{codeblock}
-class B {
-public:
-  int m;
-};
-
-class S: private B {
-  friend class N;
-};
-
-class N: private S {
-  void f() {
-    B* p = this;    // OK because class \tcode{S} satisfies the fourth condition
-                    // above: \tcode{B} is a base class of \tcode{N} accessible in \tcode{f()} because
-                    // \tcode{B} is an accessible base class of \tcode{S} and \tcode{S} is an accessible
-                    // base class of \tcode{N}.
-  }
-};
-\end{codeblock}
-\exitexample
-
-\pnum
+A base class is said to be accessible if an invented public member of the
+base class is accessible.
 If a base class is accessible, one can implicitly convert a pointer to
 a derived class to a pointer to that base class~(\ref{conv.ptr}, \ref{conv.mem}).
 \enternote
-It follows that
+it follows that
 members and friends of a class
 \tcode{X}
 can implicitly convert an
@@ -489,7 +378,7 @@ named.
 This naming class is the class in which the member name was looked
 up and found.
 \enternote
-This class can be explicit, e.g., when a
+this class can be explicit, e.g., when a
 \grammarterm{qualified-id}
 is used, or implicit, e.g., when a class member access operator~(\ref{expr.ref}) is used (including cases where an implicit
 ``\tcode{this->}''
@@ -499,7 +388,7 @@ If both a class member access operator and a
 \grammarterm{qualified-id}
 are used to name the member (as in
 \tcode{p->T::m}),
-the class naming the member is the class denoted by the
+the class naming the member is the class named by the
 \grammarterm{nested-name-specifier}
 of the
 \grammarterm{qualified-id}
@@ -508,8 +397,7 @@ of the
 \exitnote
 A member
 \tcode{m}
-is accessible at the point
-\term{R}
+is accessible
 when named in class
 \tcode{N}
 if
@@ -523,8 +411,7 @@ is public, or
 \tcode{m}
 as a member of
 \tcode{N}
-is private, and
-\term{R}
+is private, and the reference
 occurs in a member or friend of class
 \tcode{N},
 or
@@ -532,8 +419,7 @@ or
 \tcode{m}
 as a member of
 \tcode{N}
-is protected, and
-\term{R}
+is protected, and the reference
 occurs in a member or friend of class
 \tcode{N},
 or in a member or friend of a class
@@ -544,19 +430,16 @@ where
 \tcode{m}
 as a member of
 \tcode{P}
-is public, private, or protected, or
+is private or protected, or
 \item
 there exists a base class
 \tcode{B}
 of
 \tcode{N}
-that is accessible at
-\term{R},
+that is accessible at the point of reference,
 and
 \tcode{m}
-is accessible at
-\term{R}
-when named in class
+is accessible when named in class
 \tcode{B}.
 \enterexample
 
@@ -569,37 +452,113 @@ private:
 };
 class B : public A { };
 void f(B* p) {
-  p->i = 1;         // OK: \tcode{B*} can be implicitly converted to \tcode{A*},
-                    // and \tcode{f} has access to \tcode{i} in \tcode{A}
+  p->i = 1;			// OK: \tcode{B*} can be implicitly cast to \tcode{A*},
+				// and \tcode{f} has access to \tcode{i} in \tcode{A}
 }
 \end{codeblock}
-\exitexample
+\exitexampleb
 \end{itemize}
 
 \pnum
 If a class member access operator, including an implicit
 ``\tcode{this->},''
-is used to access a non-static data member or non-static
+is used to access a nonstatic data member or nonstatic
 member function, the reference is ill-formed if the
 left operand (considered as a pointer in the
 ``\tcode{.}''
 operator case) cannot be implicitly converted to a
 pointer to the naming class of the right operand.
 \enternote
-This requirement is in addition to the requirement that
+this requirement is in addition to the requirement that
 the member be accessible as named.
 \exitnote
+
+\rSec1[class.access.dcl]{Access declarations}%
+\indextext{declaration!access}
+
+\pnum
+The access of a member of a base class can be changed in the derived class
+by mentioning its \grammarterm{qualified-id} in the derived class
+declaration. Such mention is called an \term{access declaration}. The
+effect of an access declaration \grammarterm{qualified-id} \tcode{;} is
+defined to be equivalent to the declaration
+\tcode{using} \grammarterm{qualified-id} \tcode{;}.\footnote{Access
+declarations are deprecated; member
+\grammarterm{using-declaration}{s}~(\ref{namespace.udecl}) provide a better
+means of doing the same things. In earlier versions of the \Cpp language,
+access declarations were more limited; they were generalized and made
+equivalent to \grammarterm{using-declaration}{s} in the interest of
+simplicity. Programmers are encouraged to use
+\grammarterm{using-declaration}{s}, rather than the new capabilities of
+access declarations, in new code.}
+
+\pnum
+\enterexample
+
+\begin{codeblock}
+class A {
+public:
+    int z;
+    int z1;
+};
+
+class B : public A {
+    int a;
+public:
+    int b, c;
+    int bf();
+protected:
+    int x;
+    int y;
+};
+
+class D : private B {
+    int d;
+public:
+    B::c;			// adjust access to \tcode{B::c}
+    B::z;			// adjust access to \tcode{A::z}
+    A::z1;			// adjust access to \tcode{A::z1}
+    int e;
+    int df();
+protected:
+    B::x;			// adjust access to \tcode{B::x}
+    int g;
+};
+
+class X : public D {
+    int xf();
+};
+
+int ef(D&);
+int ff(X&);
+\end{codeblock}
+
+The external function \tcode{ef} can use only the names \tcode{c}, \tcode{z},
+\tcode{z1}, \tcode{e}, and \tcode{df}. Being a member of \tcode{D}, the
+function \tcode{df} can use the names \tcode{b}, \tcode{c}, \tcode{z},
+\tcode{z1}, \tcode{bf}, \tcode{x}, \tcode{y}, \tcode{d}, \tcode{e}, \tcode{df},
+and \tcode{g}, but not \tcode{a}. Being a member of \tcode{B}, the function
+\tcode{bf} can use the members \tcode{a}, \tcode{b}, \tcode{c}, \tcode{z},
+\tcode{z1}, \tcode{bf}, \tcode{x}, and \tcode{y}. The function \tcode{xf}
+can use the public and protected names from \tcode{D}, that is, \tcode{c},
+\tcode{z}, \tcode{z1}, \tcode{e}, and \tcode{df} (public), and \tcode{x},
+and \tcode{g} (protected). Thus the external function \tcode{ff} has access
+only to \tcode{c}, \tcode{z}, \tcode{z1}, \tcode{e}, and \tcode{df}. If
+\tcode{D} were a protected or private base class of \tcode{X}, \tcode{xf}
+would have the same privileges as before, but \tcode{ff} would have no
+access at all.
+\exitexample
 
 \rSec1[class.friend]{Friends}%
 \indextext{friend function!access and}%
 \indextext{access control!friend function}
 
 \pnum
-A friend of a class is a function or class that is
-given permission to use the private and protected member names from the class.
-A class specifies its friends, if any, by way of friend declarations.
-Such declarations give special access rights to the friends, but they
-do not make the nominated friends members of the befriending class.
+A friend of a class is a function or class that is not a member of the class
+but is permitted to use the private and protected member names from the class.
+The name of a friend is not in the scope of the class, and the friend is not
+called with the member access operators~(\ref{expr.ref}) unless it is a
+member of another class.
 \enterexample
 the following example illustrates the differences between
 members and friends:
@@ -609,109 +568,78 @@ members and friends:
 
 \begin{codeblock}
 class X {
-  int a;
-  friend void friend_set(X*, int);
+    int a;
+    friend void friend_set(X*, int);
 public:
-  void member_set(int);
+    void member_set(int);
 };
 
 void friend_set(X* p, int i) { p->a = i; }
 void X::member_set(int i) { a = i; }
 
-void f() {
-  X obj;
-  friend_set(&obj,10);
-  obj.member_set(10);
+void f()
+{
+    X obj;
+    friend_set(&obj,10);
+    obj.member_set(10);
 }
 \end{codeblock}
-\exitexample
+\exitexampleb
 
 \pnum
 \indextext{friend!class access~and}%
 Declaring a class to be a friend implies that the names of private and
-protected members from the class granting friendship can be accessed in the
-\grammarterm{base-specifier}{s} and member declarations of the befriended
-class. \enterexample
+protected members from the class granting friendship can be accessed in
+declarations of members of the befriended class.
+\enternote
+this means that access to private and protected names is also granted to
+member functions of the friend class (as if the functions were each friends)
+and to the static data member definitions of the friend class. This also
+means that private and protected type names from the class granting friendship
+can be used in the \grammarterm{base-clause} of a nested class of the friend
+class. However, the declarations of members of classes nested within the
+friend class cannot access the names of private and protected members from
+the class granting friendship. Also, because the \grammarterm{base-clause}
+of the friend class is not part of its member declarations, the
+\grammarterm{base-clause} of the friend class cannot access the names of the
+private and protected members from the class granting friendship. For example,
 
 \begin{codeblock}
 class A {
-  class B { };
-  friend class X;
+	class B { };
+	friend class X;
 };
-
-struct X : A::B {   // OK: \tcode{A::B} accessible to friend
-  A::B mx;          // OK: \tcode{A::B} accessible to member of friend
-  class Y {
-    A::B my;        // OK: \tcode{A::B} accessible to nested member of friend
-  };
+class X : A::B {		// ill-formed: \tcode{A::B} cannot be accessed
+				// in the \grammarterm{base-clause} for \tcode{X}
+	A::B mx;		// OK: \tcode{A::B} used to declare member of \tcode{X}
+	class Y : A::B {	// OK: \tcode{A::B} used to declare member of \tcode{X}
+		A::B my;	// ill-formed: \tcode{A::B} cannot be accessed
+				// to declare members of nested class of \tcode{X}
+	};
 };
 \end{codeblock}
-\exitexample
+\exitnote
+An \grammarterm{elaborated-type-specifier} shall be used in a friend
+declaration for a class.\footnote{The \grammarterm{class-key} of the
+\grammarterm{elaborated-type-specifier} is required.} A class shall not be
+defined in a friend declaration.
 \enterexample
 
 \begin{codeblock}
 class X {
-  enum { a=100 };
-  friend class Y;
+    enum { a=100 };
+    friend class Y;
 };
 
 class Y {
-  int v[X::a];      // OK, \tcode{Y} is a friend of \tcode{X}
+    int v[X::a];		// OK, \tcode{Y} is a friend of \tcode{X}
 };
 
 class Z {
-  int v[X::a];      // error: \tcode{X::a} is private
+    int v[X::a];		// error: \tcode{X::a} is private
 };
 \end{codeblock}
-\exitexample
-
-A class shall not be defined in a friend declaration. \enterexample
-\begin{codeblock}
-class A {
-  friend class B { }; // error: cannot define class in friend declaration
-};
-\end{codeblock}
-\exitexample
-
-\pnum
-A \tcode{friend} declaration that does not declare a function
-shall have one of the following forms:
-
-\begin{ncsimplebnf}
-\terminal{friend} elaborated-type-specifier \terminal{;}\br
-\terminal{friend} simple-type-specifier \terminal{;}\br
-\terminal{friend} typename-specifier \terminal{;}
-\end{ncsimplebnf}
-
-\enternote A \tcode{friend} declaration may be the
-\term{declaration} in a \grammarterm{template-declaration}
-(Clause~\ref{temp}, \ref{temp.friend}).\exitnote If the
-type specifier in a \tcode{friend} declaration designates a (possibly
-cv-qualified) class type, that class is declared as a friend; otherwise, the
-\tcode{friend} declaration is ignored. \enterexample
-
-\begin{codeblock}
-class C;
-typedef C Ct;
-
-class X1 {
-  friend C;         // OK: \tcode{class C} is a friend
-};
-
-class X2 {
-  friend Ct;        // OK: \tcode{class C} is a friend
-  friend D;         // error: no type-name \tcode{D} in scope
-  friend class D;   // OK: elaborated-type-specifier declares new class
-};
-
-template <typename T> class R {
-  friend T;
-};
-
-R<C> rc;            // \tcode{class C} is a friend of \tcode{R<C>}
-R<int> Ri;          // OK: \tcode{"friend int;"} is ignored
-\end{codeblock}
-\exitexample
+\exitexampleb
 
 \pnum
 \indextext{friend function!linkage~of}%
@@ -735,12 +663,11 @@ a class
 
 \begin{codeblock}
 class Y {
-  friend char* X::foo(int);
-  friend X::X(char);            // constructors can be friends
-  friend X::~X();               // destructors can be friends
+    friend char* X::foo(int);
+    // ...
 };
 \end{codeblock}
-\exitexample
+\exitexampleb
 
 \pnum
 \indextext{friend function!inline}%
@@ -751,13 +678,11 @@ and the function has namespace scope.
 
 \begin{codeblock}
 class M {
-  friend void f() { }           // definition of global \tcode{f}, a friend of \tcode{M},
+	friend void f() { }     // definition of global \tcode{f}, a friend of \tcode{M},
                                 // not the definition of a member function
 };
 \end{codeblock}
-\exitexample
-
-\pnum
+\exitexampleb
 Such a function is implicitly
 \tcode{inline}.
 A
@@ -792,29 +717,31 @@ Friendship is neither inherited nor transitive.
 
 \begin{codeblock}
 class A {
-  friend class B;
-  int a;
+    friend class B;
+    int a;
 };
 
 class B {
-  friend class C;
+    friend class C;
 };
 
 class C  {
-  void f(A* p) {
-    p->a++;         // error: \tcode{C} is not a friend of \tcode{A}
-                    // despite being a friend of a friend
-  }
+    void f(A* p)
+    {
+	p->a++;			// error: \tcode{C} is not a friend of \tcode{A}
+				// despite being a friend of a friend
+    }
 };
 
 class D : public B  {
-  void f(A* p) {
-    p->a++;         // error: \tcode{D} is not a friend of \tcode{A}
-                    // despite being derived from a friend
-  }
+    void f(A* p)
+    {
+	p->a++;			// error: \tcode{D} is not a friend of \tcode{A}
+				// despite being derived from a friend
+    }
 };
 \end{codeblock}
-\exitexample
+\exitexampleb
 
 \pnum
 \indextext{local~class!friend}%
@@ -837,118 +764,118 @@ nonclass scope.
 class X;
 void a();
 void f() {
-  class Y;
-  extern void b();
-  class A {
-  friend class X;   // OK, but \tcode{X} is a local class, not \tcode{::X}
-  friend class Y;   // OK
-  friend class Z;   // OK, introduces local class \tcode{Z}
-  friend void a();  // error, \tcode{::a} is not considered
-  friend void b();  // OK
-  friend void c();  // error
-  };
-  X *px;            // OK, but \tcode{::X} is found
-  Z *pz;            // error, no \tcode{Z} is found
+    class Y;
+    extern void b();
+    class A {
+	friend class X;		// OK, but \tcode{X} is a local class, not \tcode{::X}
+	friend class Y;		// OK
+	friend class Z;		// OK, introduces local class \tcode{Z}
+	friend void a();	// error, \tcode{::a} is not considered
+	friend void b();	// OK
+	friend void c();	// error
+    };
+    X *px;			// OK, but \tcode{::X} is found
+    Z *pz;			// error, no \tcode{Z} is found
 }
 \end{codeblock}
-\exitexample
+\exitexampleb
 
 \rSec1[class.protected]{Protected member access}
 \indextext{access control!\idxcode{protected}}%
 
 \pnum
-An additional access check beyond those described earlier in Clause~\ref{class.access}
-is applied when a non-static data member or non-static member function is a
-protected member of its naming class~(\ref{class.access.base})\footnote{This
-additional check does not apply to other members,
-e.g., static data members or enumerator member constants.}
-As described earlier, access to a protected member is granted because the
-reference occurs in a friend or member of some class \tcode{C}. If the access is
-to form a pointer to member~(\ref{expr.unary.op}), the
-\grammarterm{nested-name-specifier} shall denote \tcode{C} or a class derived from
-\tcode{C}. All other accesses involve a (possibly implicit) object
-expression~(\ref{expr.ref}). In this case, the class of the object expression shall be
-\tcode{C} or a class derived from \tcode{C}.
+When a friend or a member function of a derived class references a protected
+nonstatic member function or protected nonstatic data member of a base class,
+an access check applies in addition to those described earlier in
+clause~\ref{class.access}.\footnote{This additional check does not apply to
+other members, e.g. static data members or enumerator member constants.}
+Except when forming a pointer to member~(\ref{expr.unary.op}), the access
+must be through a pointer to, reference to, or object of the derived class
+itself (or any class derived from that class)~(\ref{expr.ref}). If the access
+is to form a pointer to member, the \grammarterm{nested-name-specifier} shall
+name the derived class (or any class derived from that class).
 \enterexample
 
 \begin{codeblock}
 class B {
 protected:
-  int i;
-  static int j;
+    int i;
+    static int j;
 };
 
 class D1 : public B {
 };
 
 class D2 : public B {
-  friend void fr(B*,D1*,D2*);
-  void mem(B*,D1*);
+    friend void fr(B*,D1*,D2*);
+    void mem(B*,D1*);
 };
 
-void fr(B* pb, D1* p1, D2* p2) {
-  pb->i = 1;                    // ill-formed
-  p1->i = 2;                    // ill-formed
-  p2->i = 3;                    // OK (access through a \tcode{D2})
-  p2->B::i = 4;                 // OK (access through a \tcode{D2}, even though
+void fr(B* pb, D1* p1, D2* p2)
+{
+    pb->i = 1;                  // ill-formed
+    p1->i = 2;                  // ill-formed
+    p2->i = 3;                  // OK (access through a \tcode{D2})
+    p2->B::i = 4;               // OK (access through a \tcode{D2}, even though
                                 // naming class is \tcode{B})
-  int B::* pmi_B = &B::i;       // ill-formed
-  int B::* pmi_B2 = &D2::i;     // OK (type of \tcode{\&D2::i} is \tcode{int B::*})
-  B::j = 5;                     // OK (because refers to static member)
-  D2::j = 6;                    // OK (because refers to static member)
+    int B::* pmi_B = &B::i;     // ill-formed
+    int B::* pmi_B2 = &D2::i;   // OK (type of \tcode{\&D2::i} is \tcode{int B::*})
+    B::j = 5;                   // OK (because refers to static member)
+    D2::j = 6;                  // OK (because refers to static member)
 }
 
-void D2::mem(B* pb, D1* p1) {
-  pb->i = 1;                    // ill-formed
-  p1->i = 2;                    // ill-formed
-  i = 3;                        // OK (access through \tcode{this})
-  B::i = 4;                     // OK (access through \tcode{this}, qualification ignored)
-  int B::* pmi_B = &B::i;       // ill-formed
-  int B::* pmi_B2 = &D2::i;     // OK
-  j = 5;                        // OK (because \tcode{j} refers to static member)
-  B::j = 6;                     // OK (because \tcode{B::j} refers to static member)
+void D2::mem(B* pb, D1* p1)
+{
+    pb->i = 1;                  // ill-formed
+    p1->i = 2;                  // ill-formed
+    i = 3;                      // OK (access through \tcode{this})
+    B::i = 4;                   // OK (access through \tcode{this}, qualification ignored)
+    int B::* pmi_B = &B::i;     // ill-formed
+    int B::* pmi_B2 = &D2::i;   // OK
+    j = 5;                      // OK (because \tcode{j} refers to static member)
+    B::j = 6;                   // OK (because \tcode{B::j} refers to static member)
 }
 
-void g(B* pb, D1* p1, D2* p2) {
-  pb->i = 1;                    // ill-formed
-  p1->i = 2;                    // ill-formed
-  p2->i = 3;                    // ill-formed
+void g(B* pb, D1* p1, D2* p2)
+{
+    pb->i = 1;                  // ill-formed
+    p1->i = 2;                  // ill-formed
+    p2->i = 3;                  // ill-formed
 }
 \end{codeblock}
-\exitexample
+\exitexampleb
 
 \rSec1[class.access.virt]{Access to virtual functions}%
 \indextext{access control!virtual function}
 
 \pnum
-The access rules (Clause~\ref{class.access}) for a virtual function are determined by its declaration
+The access rules (clause~\ref{class.access}) for a virtual function are determined by its declaration
 and are not affected by the rules for a function that later overrides it.
 \enterexample
 
 \begin{codeblock}
 class B {
 public:
-  virtual int f();
+    virtual int f();
 };
 
 class D : public B {
 private:
-  int f();
+    int f();
 };
 
-void f() {
-  D d;
-  B* pb = &d;
-  D* pd = &d;
+void f()
+{
+    D d;
+    B* pb = &d;
+    D* pd = &d;
 
-  pb->f();                      // OK: \tcode{B::f()} is public,
+    pb->f();                    // OK: \tcode{B::f()} is public,
                                 // \tcode{D::f()} is invoked
-  pd->f();                      // error: \tcode{D::f()} is private
+    pd->f();                    // error: \tcode{D::f()} is private
 }
 \end{codeblock}
-\exitexample
-
-\pnum
+\exitexampleb
 Access is checked at the call point using the type of the expression used
 to denote the object for which the member function is called
 (\tcode{B*}
@@ -970,11 +897,10 @@ class W { public: void f(); };
 class A : private virtual W { };
 class B : public virtual W { };
 class C : public A, public B {
-  void f() { W::f(); }          // OK
+    void f() { W::f(); }        // OK
 };
 \end{codeblock}
 
-\pnum
 Since
 \tcode{W::f()}
 is available to
@@ -989,29 +915,57 @@ access is allowed.
 \indextext{member function!nested class}
 
 \pnum
-A nested class is a member and as such has the same access rights as any other member.
+The members of a nested class have no special access to members of an
+enclosing class, nor to classes or functions that have granted friendship
+to an enclosing class; the usual access rules (clause~\ref{class.access})
+shall be obeyed.
 The members of an enclosing class have no special access to members of a nested
-class; the usual access rules (Clause~\ref{class.access}) shall be obeyed.
+class; the usual access rules (clause~\ref{class.access}) shall be obeyed.
 \enterexample
 \indextext{example!nested~class definition}%
 
 \begin{codeblock}
 class E {
-  int x;
-  class B { };
+    int x;
+    class B { };
 
-  class I {
-    B b;                        // OK: \tcode{E::I} can access \tcode{E::B}
-    int y;
-    void f(E* p, int i) {
-      p->x = i;                 // OK: \tcode{E::I} can access \tcode{E::x}
+    class I {
+	B b;                    // error: \tcode{E::B} is private
+	int y;
+	void f(E* p, int i)
+	{
+	    p->x = i;           // error: \tcode{E::x} is private
+	}
+    };
+
+    int g(I* p)
+    {
+	return p->y;            // error: \tcode{I::y} is private
     }
-  };
-
-  int g(I* p) {
-    return p->y;                // error: \tcode{I::y} is private
-  }
 };
 \end{codeblock}
-\exitexample%
+\exitexampleb
+
+\pnum
+\enternote
+because a \grammarterm{base-clause} for a nested class is part of the
+declaration of the nested class itself (and not part of the declarations
+of the members of the nested class), the \grammarterm{base-clause} may
+refer to the private members of the enclosing class. For example,
+
+\begin{codeblock}
+class C {
+	class A { };
+	A *p;			// OK
+	class B : A		// OK
+	{
+		A *q;		// OK because of injection of name \tcode{A} in \tcode{A}
+		C::A *r;	// error, \tcode{C::A} is inaccessible
+		B *s;		// OK because of injection of name \tcode{B} in \tcode{B}
+		C::B *t;	// error, \tcode{C::B} is inaccessible
+	};
+};
+\end{codeblock}
+
+\exitnoteb%
 \indextext{access control|)}

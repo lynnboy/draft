@@ -56,7 +56,7 @@
 %%--------------------------------------------------
 %%  set heading styles for main matter
 \newcommand{\beforeskip}{-.7\onelineskip plus -1ex}
-\newcommand{\afterskip}{.3\onelineskip minus .2ex}
+\newcommand{\afterskip}{.8\onelineskip minus .2ex}
 
 \setbeforesecskip{\beforeskip}
 \setsecindent{0pt}
@@ -92,6 +92,29 @@
 %%--------------------------------------------------
 %%  set footnote style
 \footmarkstyle{\smaller#1) }
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{.5\onelineskip} %.5\onelineskip
+\setlength{\partopsep}{-1.5ex} %-1.5ex
+\setlength{\parsep}{\onelineskip} %\onelineskip
+\let\oldenumerate\enumerate
+\renewcommand{\enumerate}{
+    \oldenumerate
+    \setlength{\itemsep}{.5\onelineskip}
+    \setlength{\parsep}{0pt}
+    \setlength{\partopsep}{-1.5ex}
+    \setlength{\parskip}{0pt}
+}
+\let\olditemize\itemize
+\renewcommand{\itemize}{
+    \olditemize
+    \setlength{\itemsep}{.5\onelineskip}
+    \setlength{\parsep}{0pt}
+    \setlength{\partopsep}{-1.5ex}
+    \setlength{\parskip}{0pt}
+}
+\usepackage{enumitem}
+\setlist[itemize]{nosep,itemsep=.5\onelineskip}
 
 %%--------------------------------------------------
 %%  set caption style and delimiter
@@ -131,4 +154,4 @@
 %%--------------------------------------------------
 %% set section numbering limit, toc limit
 \maxsecnumdepth{subparagraph}
-\setcounter{tocdepth}{1}
+\setcounter{tocdepth}{5}

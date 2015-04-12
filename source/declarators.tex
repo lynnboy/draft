@@ -1,7 +1,7 @@
 \rSec0[dcl.decl]{Declarators}%
 \indextext{declarator|(}
 
-%gram: \rSec1[gram.decl]{Declarators}
+%gram: \rSec1[gram.dcl.decl]{Declarators}
 %gram:
 
 \indextext{initialization!class~object|seealso{constructor}}%
@@ -12,7 +12,7 @@
 \indextext{\idxcode{()}|see{declarator, function}}%
 
 \pnum
-A declarator declares a single variable, function, or type, within a declaration.
+A declarator declares a single object, function, or type, within a declaration.
 The
 \grammarterm{init-declarator-list}
 appearing in a declaration
@@ -31,17 +31,12 @@ each of which can have an initializer.
 \end{bnf}
 
 \pnum
-The three components of a
-\grammarterm{simple-declaration}
-are the
-attributes~(\ref{dcl.attr}), the
-specifiers
-(\grammarterm{decl-specifier-seq};
-\ref{dcl.spec}) and the declarators
-(\grammarterm{init-declarator-list}).
+The two components of a \grammarterm{declaration} are the
+specifiers (\grammarterm{decl-specifier-seq};
+\ref{dcl.spec}) and the declarators (\grammarterm{init-declarator-list}).
 The specifiers indicate the type, storage class or other properties of
-the entities being declared.
-The declarators specify the names of these entities
+the objects, functions or typedefs being declared.
+The declarators specify the names of these objects, functions or typedefs,
 and (optionally) modify the type of the specifiers with operators such as
 \tcode{*}
 (pointer
@@ -72,9 +67,9 @@ is a
 \grammarterm{decl-specifier-seq}
 and each
 \tcode{Di}
-is an
+is a
 \grammarterm{init-declarator}.
-An exception occurs when a name introduced by one of the
+The exception occurs when a name introduced by one of the
 \grammarterm{declarator}{s}
 hides a type name used by the
 \grammarterm{decl-specifiers},
@@ -83,22 +78,14 @@ so that when the same
 are used in a subsequent declaration, they do not have the same meaning,
 as in
 
-\tcode{struct S { ... };}\\
-\indent\tcode{S S, T; \textrm{// declare two instances of \tcode{struct S}}}
+\tcode{struct S \{ ... \}}\\
+\indent\tcode{S   S, T;} \textit{// declare two instances of} \tcode{struct S}
 
 \noindent which is not equivalent to
 
-\tcode{struct S { ... };}\\
-\indent\tcode{S S;}\\
-\indent\tcode{S T; \textrm{// error}}
-
-\noindent Another exception occurs when \tcode{T} is \tcode{auto}~(\ref{dcl.spec.auto}),
-for example:
-
-\tcode{auto i = 1, j = 2.0; \textrm{// error: deduced types for \tcode{i} and \tcode{j} do not match}}\\
-\noindent as opposed to\\
-\indent\tcode{auto i = 1;    \textrm{// OK: \tcode{i} deduced to have type \tcode{int}}}\\
-\indent\tcode{auto j = 2.0;  \textrm{// OK: \tcode{j} deduced to have type \tcode{double}}}
+\tcode{struct S \{ ... \}}\\
+\indent\tcode{S   S;}\\
+\indent\tcode{S   T;} \textit{// error}
 }
 
 \pnum
@@ -106,41 +93,24 @@ Declarators have the syntax
 
 \begin{bnf}
 \nontermdef{declarator}\br
-    ptr-declarator\br
-    noptr-declarator parameters-and-qualifiers trailing-return-type
+    direct-declarator\br
+    ptr-operator declarator
 \end{bnf}
 
 \begin{bnf}
-\nontermdef{ptr-declarator}\br
-    noptr-declarator\br
-    ptr-operator ptr-declarator
-\end{bnf}
-
-\begin{bnf}
-\nontermdef{noptr-declarator}\br
-    declarator-id attribute-specifier-seq\opt\br
-    noptr-declarator parameters-and-qualifiers\br
-    noptr-declarator \terminal{[} constant-expression\opt \terminal{]} attribute-specifier-seq\opt\br
-    \terminal{(} ptr-declarator \terminal{)}
-\end{bnf}
-
-\begin{bnf}
-\nontermdef{parameters-and-qualifiers}\br
-    \terminal{(} parameter-declaration-clause \terminal{)} attribute-specifier-seq\opt cv-qualifier-seq\opt\br
-\hspace*{\bnfindentinc}ref-qualifier\opt exception-specification\opt
-\end{bnf}
-
-\begin{bnf}
-\nontermdef{trailing-return-type}\br
-    \terminal{->} trailing-type-specifier-seq abstract-declarator\opt
+\nontermdef{direct-declarator}\br
+    declarator-id\br
+    direct-declarator \terminal{(} parameter-declaration-clause \terminal{)}
+	cv-qualifier-seq\opt exception-specification\opt\br
+    direct-declarator \terminal{[} constant-expression\opt \terminal{]}\br
+    \terminal{(} declarator \terminal{)}
 \end{bnf}
 
 \begin{bnf}
 \nontermdef{ptr-operator}\br
-    \terminal{*} attribute-specifier-seq\opt cv-qualifier-seq\opt\br
-    \terminal{\&} attribute-specifier-seq\opt\br
-    \terminal{\&\&} attribute-specifier-seq\opt\br
-    nested-name-specifier \terminal{*} attribute-specifier-seq\opt cv-qualifier-seq\opt
+    \terminal{*} cv-qualifier-seq\opt\br
+    \terminal{\&} \br
+    \terminal{::}\opt nested-name-specifier \terminal{*} cv-qualifier-seq\opt
 \end{bnf}
 
 \begin{bnf}
@@ -155,15 +125,9 @@ Declarators have the syntax
 \end{bnf}
 
 \begin{bnf}
-\nontermdef{ref-qualifier}\br
-    \terminal{\&}\br
-    \terminal{\&\&}
-\end{bnf}
-
-\begin{bnf}
 \nontermdef{declarator-id}\br
-    \terminal{...}\opt id-expression\br
-    nested-name-specifier\opt class-name
+    id-expression\br
+    \terminal{::}\opt nested-name-specifier\opt type-name
 \end{bnf}
 
 \indextext{class~name}%
@@ -174,19 +138,6 @@ and when qualified by that name using the scope resolution operator
 \tcode{::}
 (\ref{expr.prim}, \ref{class.ctor}, \ref{class.dtor}).
 
-\pnum
-The optional \grammarterm{attribute-specifier-seq} in a
-\grammarterm{trailing-return-type} appertains to the indicated return type. The
-\grammarterm{type-id} in a \grammarterm{trailing-return-type} includes the longest
-possible sequence of \grammarterm{abstract-declarator}{s}. \enternote This resolves the
-ambiguous binding of array and function declarators. \enterexample
-
-\begin{codeblock}
-auto f()->int(*)[4];  // function returning a pointer to array[4] of \tcode{int}
-                      // not function returning array[4] of pointer to \tcode{int}
-\end{codeblock}
-\exitexample \exitnote
-
 \rSec1[dcl.name]{Type names}
 
 \pnum
@@ -195,15 +146,14 @@ To specify type conversions explicitly,
 \indextext{operator!cast}%
 and as an argument of
 \tcode{sizeof},
-\tcode{alignof},
 \tcode{new},
 or
 \tcode{typeid},
 the name of a type shall be specified.
 This can be done with a
 \grammarterm{type-id},
-which is syntactically a declaration for a variable or function
-of that type that omits the name of the entity.
+which is syntactically a declaration for an object or function
+of that type that omits the name of the object or function.
 
 \begin{bnf}
 \nontermdef{type-id}\br
@@ -211,37 +161,24 @@ of that type that omits the name of the entity.
 \end{bnf}
 
 \begin{bnf}
+\nontermdef{type-specifier-seq}\br
+    type-specifier type-specifier-seq\opt
+\end{bnf}
+
+\begin{bnf}
 \nontermdef{abstract-declarator}\br
-    ptr-abstract-declarator\br
-    noptr-abstract-declarator\opt parameters-and-qualifiers trailing-return-type\br
-    abstract-pack-declarator
+    ptr-operator abstract-declarator\opt\br
+    direct-abstract-declarator
 \end{bnf}
 
-\begin{bnf}
-\nontermdef{ptr-abstract-declarator}\br
-    noptr-abstract-declarator\br
-    ptr-operator ptr-abstract-declarator\opt
-\end{bnf}
-
-\begin{bnf}
-\nontermdef{noptr-abstract-declarator}\br
-    noptr-abstract-declarator\opt parameters-and-qualifiers\br
-    noptr-abstract-declarator\opt \terminal{[} constant-expression\opt{} \terminal{]} attribute-specifier-seq\opt\br
-    \terminal{(} ptr-abstract-declarator \terminal{)}
-\end{bnf}
-
-\begin{bnf}
-\nontermdef{abstract-pack-declarator}\br
-    noptr-abstract-pack-declarator\br
-    ptr-operator abstract-pack-declarator
-\end{bnf}
-
-\begin{bnf}
-\nontermdef{noptr-abstract-pack-declarator}\br
-    noptr-abstract-pack-declarator parameters-and-qualifiers\br
-    noptr-abstract-pack-declarator \terminal{[} constant-expression\opt\ \terminal{]} attribute-specifier-seq\opt\br
-    \terminal{...}
-\end{bnf}
+\begin{bnftab}
+\nontermdef{direct-abstract-declarator}\br
+    \>direct-abstract-declarator\opt\br
+	\>\>\terminal{(} parameter-declaration-clause \terminal{)}
+	cv-qualifier-seq\opt exception-specification\opt\br
+    \>direct-abstract-declarator\opt \terminal{[} constant-expression\opt{} \terminal{]}\br
+    \>\terminal{(} abstract-declarator \terminal{)}
+\end{bnftab}
 
 It is possible to identify uniquely the location in the
 \grammarterm{abstract-declarator}
@@ -254,12 +191,12 @@ hypothetical identifier.
 \indextext{example!type~name}%
 \indextext{example!declarator}%
 \begin{codeblock}
-int                 // \tcode{int i}
-int *               // \tcode{int *pi}
-int *[3]            // \tcode{int *p[3]}
-int (*)[3]          // \tcode{int (*p3i)[3]}
-int *()             // \tcode{int *f()}
-int (*)(double)     // \tcode{int (*pf)(double)}
+int				// \tcode{int i}
+int *				// \tcode{int *pi}
+int *[3]			// \tcode{int *p[3]}
+int (*)[3]			// \tcode{int (*p3i)[3]}
+int *()				// \tcode{int *f()}
+int (*)(double)			// \tcode{int (*pf)(double)}
 \end{codeblock}
 
 name respectively the types
@@ -297,8 +234,8 @@ Just as for the ambiguities mentioned in~\ref{stmt.ambig},
 the resolution is to consider any construct that could possibly
 be a declaration a declaration.
 \enternote
-A declaration can be explicitly disambiguated by a nonfunction-style
-cast, by an
+a declaration can be explicitly disambiguated by a nonfunction-style
+cast, by a
 \tcode{=}
 to indicate initialization or
 by removing the redundant parentheses around the parameter name.
@@ -307,17 +244,18 @@ by removing the redundant parentheses around the parameter name.
 
 \begin{codeblock}
 struct S {
-  S(int);
+    S(int);
 };
 
-void foo(double a) {
-  S w(int(a));      // function declaration
-  S x(int());       // function declaration
-  S y((int)a);      // object declaration
-  S z = int(a);     // object declaration
+void foo(double a)
+{
+    S w(int(a));		// function declaration
+    S x(int());			// function declaration
+    S y((int)a);		// object declaration
+    S z = int(a);		// object declaration
 }
 \end{codeblock}
-\exitexample
+\exitexampleb
 
 \pnum
 The ambiguity arising from the similarity between a function-style
@@ -337,11 +275,11 @@ in its syntactic context shall be considered a
 \begin{codeblock}
 #include <cstddef>
 char *p;
-void *operator new(std::size_t, int);
+void *operator new(size_t, int);
 void foo()  {
-  const int x = 63;
-  new (int(*p)) int;            // new-placement expression
-  new (int(*[x]));              // new type-id
+	const int x = 63;
+	new (int(*p)) int;      // new-placement expression
+	new (int(*[x]));        // new type-id
 }
 \end{codeblock}
 
@@ -351,7 +289,7 @@ For another example,
 \begin{codeblock}
 template <class T>
 struct S {
-  T *p;
+	T *p;
 };
 S<int()> x;                     // type-id
 S<int(1)> y;                    // expression (ill-formed)
@@ -361,9 +299,10 @@ S<int(1)> y;                    // expression (ill-formed)
 For another example,
 
 \begin{codeblock}
-void foo() {
-  sizeof(int(1));               // expression
-  sizeof(int());                // type-id (ill-formed)
+void foo()
+{
+	sizeof(int(1));         // expression
+	sizeof(int());          // type-id (ill-formed)
 }
 \end{codeblock}
 
@@ -371,12 +310,13 @@ void foo() {
 For another example,
 
 \begin{codeblock}
-void foo() {
-  (int(1));                     // expression
-  (int())1;                     // type-id (ill-formed)
+void foo()
+{
+	(int(1));               // expression
+	(int())1;               // type-id (ill-formed)
 }
 \end{codeblock}
-\exitexample
+\exitexampleb
 
 \pnum
 Another ambiguity arises in a
@@ -410,8 +350,8 @@ void f(int(C)) { }              // \tcode{void f(int(*fp)(C c)) \{ \}}
 int g(C);
 
 void foo() {
-  f(1);                         // error: cannot convert \tcode{1} to function pointer
-  f(g);                         // OK
+	f(1);                   // error: cannot convert \tcode{1} to function pointer
+	f(g);                   // OK
 }
 \end{codeblock}
 
@@ -422,13 +362,13 @@ class C { };
 void h(int *(C[10]));           // \tcode{void h(int *(*_fp)(C _parm[10]));}
                                 // not: \tcode{void h(int *C[10]);}
 \end{codeblock}
-\exitexample
+\exitexampleb
 
 \rSec1[dcl.meaning]{Meaning of declarators}%
 \indextext{declarator!meaning~of|(}
 
 \pnum
-A list of declarators appears after an optional (Clause~\ref{dcl.dcl})
+A list of declarators appears after an optional (clause~\ref{dcl.dcl})
 \grammarterm{decl-specifier-seq}
 (\ref{dcl.spec}).
 \indextext{declaration!type}%
@@ -455,38 +395,32 @@ the definition or explicit instantiation of a
 function or variable
 member of a namespace
 outside of its namespace, or
-the definition of an explicit specialization
+the definition of a previously declared explicit specialization
 outside of its namespace, or
 the declaration of a friend function that is a member of
 another class or namespace (\ref{class.friend}).
 When the
 \grammarterm{declarator-id}
 is qualified, the declaration shall refer to a previously declared member
-of the class or namespace to which the qualifier refers (or,
-in the case of a namespace,
-of an element of the inline namespace
-set of that namespace~(\ref{namespace.def})) or to a specialization thereof; the member
-shall not merely have been introduced by a
+of the class or namespace to which the qualifier refers, and the member
+shall not have been introduced by a
 \grammarterm{using-declaration}
 in the scope of the class or namespace nominated by the
 \grammarterm{nested-name-specifier}
 of the
 \grammarterm{declarator-id}.
-The \grammarterm{nested-name-specifier} of a qualified \grammarterm{declarator-id} shall not
-begin with a \grammarterm{decltype-specifier}.
 \enternote
-If the qualifier is the global
+if the qualifier is the global
 \tcode{::}
 scope resolution operator, the
 \grammarterm{declarator-id}
 refers to a name declared in the global namespace scope.
 \exitnote
-The optional \grammarterm{attribute-specifier-seq} following a \grammarterm{declarator-id} appertains to the entity that is declared.
 
 \pnum
-A
+An
+\tcode{auto},
 \tcode{static},
-\tcode{thread_local},
 \tcode{extern},
 \tcode{register},
 \tcode{mutable},
@@ -497,7 +431,7 @@ or
 \tcode{typedef}
 specifier applies directly to each
 \grammarterm{declarator-id}
-in an
+in a
 \grammarterm{init-declarator-list};
 the type specified for each
 \grammarterm{declarator-id}
@@ -509,13 +443,13 @@ and its
 \pnum
 Thus, a declaration of a particular identifier has the form
 
-\begin{codeblock}
-T D
-\end{codeblock}
+\begin{ncsimplebnf}
+\terminal{T D}
+\end{ncsimplebnf}
 
 where
 \tcode{T}
-is of the form \grammarterm{attribute-specifier-seq\opt}
+is a
 \grammarterm{decl-specifier-seq}
 and
 \tcode{D}
@@ -531,15 +465,15 @@ First, the
 determines a type.
 In a declaration
 
-\begin{codeblock}
-T D
-\end{codeblock}
+\begin{ncsimplebnf}
+\terminal{T D}
+\end{ncsimplebnf}
 
 the
 \grammarterm{decl-specifier-seq}
 \tcode{T}
 determines the type
-\tcode{T}.
+``\tcode{T}.''
 \enterexample
 in the declaration
 
@@ -557,7 +491,6 @@ determine the type
 
 \pnum
 In a declaration
-\grammarterm{attribute-specifier-seq\opt}
 \tcode{T}
 \tcode{D}
 where
@@ -574,7 +507,7 @@ where
 has the form
 
 \begin{ncsimplebnf}
-( D1 )
+\terminal{( D1 )}
 \end{ncsimplebnf}
 
 the type of the contained
@@ -583,9 +516,9 @@ is the same as that of the contained
 \grammarterm{declarator-id}
 in the declaration
 
-\begin{codeblock}
-T D1
-\end{codeblock}
+\begin{ncsimplebnf}
+\terminal{T D1}
+\end{ncsimplebnf}
 
 \indextext{declaration!parentheses~in}%
 Parentheses do not alter the type of the embedded
@@ -604,7 +537,7 @@ where
 has the form
 
 \begin{ncsimplebnf}
-\terminal{*} attribute-specifier-seq\opt cv-qualifier-seq\opt \terminal{D1}
+\terminal{*} cv-qualifier-seq\opt \terminal{D1}
 \end{ncsimplebnf}
 
 and the type of the identifier in the declaration
@@ -621,7 +554,6 @@ is ``\nonterminal{derived-declarator-type-list cv-qualifier-seq} pointer to
 The
 \grammarterm{cv-qualifier}{s}
 apply to the pointer and not to the object pointed to.
-Similarly, the optional \grammarterm{attribute-specifier-seq}~(\ref{dcl.attr.grammar}) appertains to the pointer and not to the object pointed to.
 
 \pnum
 \enterexample
@@ -673,13 +605,13 @@ ppc = &pc;
 Examples of ill-formed operations are
 
 \begin{codeblock}
-ci = 1;             // error
-ci++;               // error
-*pc = 2;            // error
-cp = &ci;           // error
-cpc++;              // error
-p = pc;             // error
-ppc = &p;           // error
+ci = 1;				// error
+ci++;				// error
+*pc = 2;			// error
+cp = &ci;			// error
+cpc++;				// error
+p = pc;				// error
+ppc = &p;			// error
 \end{codeblock}
 
 Each is unacceptable because it would either change the value of an object declared
@@ -687,18 +619,18 @@ Each is unacceptable because it would either change the value of an object decla
 or allow it to be changed through a cv-unqualified pointer later, for example:
 
 \begin{codeblock}
-*ppc = &ci;         // OK, but would make \tcode{p} point to \tcode{ci} ...
-                    // ... because of previous error
-*p = 5;             // clobber \tcode{ci}
+*ppc = &ci;			// OK, but would make \tcode{p} point to \tcode{ci} ...
+				// ... because of previous error
+*p = 5;				// clobber \tcode{ci}
 \end{codeblock}
-\exitexample
+\exitexampleb
 
 \pnum
 See also~\ref{expr.ass} and~\ref{dcl.init}.
 
 \pnum
 \enternote
-There are no pointers to references; see~\ref{dcl.ref}.
+there are no pointers to references; see~\ref{dcl.ref}.
 Since the address of a bit-field (\ref{class.bit}) cannot be taken,
 a pointer can never point to a bit-field.
 \exitnote
@@ -712,11 +644,10 @@ In a declaration
 \tcode{D}
 where
 \tcode{D}
-has either of the forms
+has the forms
 
 \begin{ncsimplebnf}
-\terminal{\&} attribute-specifier-seq\opt \terminal{D1}\br
-\terminal{\&\&} attribute-specifier-seq\opt \terminal{D1}
+\terminal{\&} \terminal{D1}
 \end{ncsimplebnf}
 
 and the type of the identifier in the declaration
@@ -728,41 +659,32 @@ then the type of the identifier of
 \tcode{D}
 is ``\nonterminal{derived-declarator-type-list} reference to
 \tcode{T}.''
-The optional \grammarterm{attribute-specifier-seq} appertains to the reference type.
 Cv-qualified references are ill-formed except when the cv-qualifiers
 are introduced through the use of a typedef (\ref{dcl.typedef}) or
 of a template type argument (\ref{temp.arg}),
 in which case the cv-qualifiers are ignored.
 \enterexample
+in
 
 \begin{codeblock}
 typedef int& A;
-const A aref = 3;   // ill-formed; lvalue reference to non-\tcode{const} initialized with rvalue
+const A aref = 3;		// ill-formed;
+				// non-\tcode{const} reference initialized with rvalue
 \end{codeblock}
 
-The type of
+the type of
 \tcode{aref}
-is ``lvalue reference to \tcode{int}'',
-not ``lvalue reference to \tcode{const int}''.
+is ``reference to \tcode{int}'',
+not ``\tcode{const} reference to \tcode{int}''.
 \exitexample
 \indextext{\idxcode{void\&}}%
 \enternote
-A reference can be thought of as a name of an object.
+a reference can be thought of as a name of an object.
 \exitnote
 A declarator that specifies the type
 ``reference to \textit{cv} \tcode{void}''
 is ill-formed.
 
-
-\pnum
-\indextext{lvalue~reference}%
-\indextext{rvalue~reference}%
-A reference type that is declared using \tcode{\&} is called an
-\term{lvalue reference}, and a reference type that
-is declared using \tcode{\&\&} is called an
-\term{rvalue reference}. Lvalue references and
-rvalue references are distinct types. Except where explicitly noted, they are
-semantically equivalent and commonly referred to as references.
 
 \pnum
 \indextext{declaration!reference}%
@@ -807,20 +729,22 @@ For another example,
 
 \begin{codeblock}
 struct link {
-  link* next;
+    link* next;
 };
 
 link* first;
 
-void h(link*& p) {  // \tcode{p} is a reference to pointer
-  p->next = first;
-  first = p;
-  p = 0;
+void h(link*& p)		// \tcode{p} is a reference to pointer
+{
+    p->next = first;
+    first = p;
+    p = 0;
 }
 
-void k() {
-   link* q = new link;
-   h(q);
+void k()
+{
+	link* q = new link;
+	h(q);
 }
 \end{codeblock}
 
@@ -864,31 +788,6 @@ As described in~\ref{class.bit}, a reference cannot be bound directly
 to a bit-field.
 \exitnote
 
-\pnum
-\indextext{reference collapsing}%
-If a typedef~(\ref{dcl.typedef}), a type \grammarterm{template-parameter}~(\ref{temp.arg.type}),
-or a \grammarterm{decltype-specifier}~(\ref{dcl.type.simple}) denotes a type \tcode{TR} that
-is a reference to a type \tcode{T}, an attempt to create the type ``lvalue reference to \cv\ 
-\tcode{TR}'' creates the type ``lvalue reference to \tcode{T}'', while an attempt to create
-the type ``rvalue reference to \cv\ \tcode{TR}'' creates the type \tcode{TR}. \enterexample
-
-\begin{codeblock}
-int i;
-typedef int& LRI;
-typedef int&& RRI;
-
-LRI& r1 = i;                    // \tcode{r1} has the type \tcode{int\&}
-const LRI& r2 = i;              // \tcode{r2} has the type \tcode{int\&}
-const LRI&& r3 = i;             // \tcode{r3} has the type \tcode{int\&}
-
-RRI& r4 = i;                    // \tcode{r4} has the type \tcode{int\&}
-RRI&& r5 = 5;                   // \tcode{r5} has the type \tcode{int\&\&}
-
-decltype(r2)& r6 = i;           // \tcode{r6} has the type \tcode{int\&}
-decltype(r2)&& r7 = i;          // \tcode{r7} has the type \tcode{int\&}
-\end{codeblock}
-\exitexample
-
 \rSec2[dcl.mptr]{Pointers to members}%
 \indextext{declarator!pointer to member}
 
@@ -901,35 +800,34 @@ where
 has the form
 
 \begin{ncsimplebnf}
-nested-name-specifier \terminal{*} attribute-specifier-seq\opt cv-qualifier-seq\opt \tcode{D1}
+\terminal{::}\opt nested-name-specifier \terminal{*} cv-qualifier-seq\opt \tcode{D1}
 \end{ncsimplebnf}
 
 and the
 \grammarterm{nested-name-specifier}
-denotes a class,
+names a class,
 and the type of the identifier in the declaration
 \tcode{T}
 \tcode{D1}
 is ``\nonterminal{derived-declarator-type-list}
-\tcode{T}'',
+\tcode{T},''
 then the type of the identifier of
 \tcode{D}
 is ``\nonterminal{derived-declarator-type-list cv-qualifier-seq} pointer to member of class
 \nonterminal{nested-name-specifier} of type
-\tcode{T}''.
-The optional \grammarterm{attribute-specifier-seq}~(\ref{dcl.attr.grammar}) appertains to the 
-pointer-to-member.
+\tcode{T}.''
 
 \pnum
 \enterexample%
 \indextext{example!pointer~to~member}
 
 \begin{codeblock}
-struct X {
-  void f(int);
-  int a;
+class X {
+public:
+    void f(int);
+    int a;
 };
-struct Y;
+class Y;
 
 int X::* pmi = &X::a;
 void (X::* pmf)(int) = &X::f;
@@ -979,12 +877,12 @@ can be used like this:
 \begin{codeblock}
 X obj;
 // ...
-obj.*pmi = 7;       // assign \tcode{7} to an integer
-                    // member of \tcode{obj}
-(obj.*pmf)(7);      // call a function member of \tcode{obj}
-                    // with the argument \tcode{7}
+obj.*pmi = 7;			// assign \tcode{7} to an integer
+				// member of \tcode{obj}
+(obj.*pmf)(7);			// call a function member of \tcode{obj}
+				// with the argument \tcode{7}
 \end{codeblock}
-\exitexample
+\exitexampleb
 
 \pnum
 A pointer to member shall not point to a static member
@@ -993,9 +891,8 @@ a member with reference type,
 or
 ``\textit{cv}
 \tcode{void}.''
-
 \enternote
-See also~\ref{expr.unary} and~\ref{expr.mptr.oper}.
+see also~\ref{expr.unary} and~\ref{expr.mptr.oper}.
 The type ``pointer to member'' is distinct from the type ``pointer'',
 that is, a pointer to member is declared only by the pointer to member
 declarator syntax, and never by the pointer declarator syntax.
@@ -1014,7 +911,7 @@ where
 has the form
 
 \begin{ncsimplebnf}
-\terminal{D1 [} constant-expression\opt \terminal{]} attribute-specifier-seq\opt
+\terminal{D1 [} constant-expression\opt \terminal{]}
 \end{ncsimplebnf}
 
 and the type of the identifier in the declaration
@@ -1022,12 +919,10 @@ and the type of the identifier in the declaration
 \tcode{D1}
 is
 ``\grammarterm{derived-declarator-type-list}
-\tcode{T}'',
+\tcode{T},''
 then the type of the identifier of
 \tcode{D}
-is an array type; if the type of the identifier of \tcode{D}
-contains the \tcode{auto} \nonterminal{type-specifier},
-the program is ill-formed.
+is an array type.
 \tcode{T}
 is called the array
 \term{element type};
@@ -1056,23 +951,22 @@ and the type of the identifier of
 \tcode{D}
 is ``\nonterminal{derived-declarator-type-list} array of
 \tcode{N}
-\tcode{T}''.
+\tcode{T}.''
 An object of array type contains a contiguously allocated non-empty set of
 \tcode{N}
-subobjects of type
+sub-objects of type
 \tcode{T}.
-Except as noted below, if
-the constant expression is omitted, the type of the identifier of
+If the constant expression is omitted, the type of the identifier of
 \tcode{D}
 is ``\nonterminal{derived-declarator-type-list} array of unknown bound of
-\tcode{T}'',
+\tcode{T},''
 an incomplete object type.
 The type ``\nonterminal{derived-declarator-type-list} array of
 \tcode{N}
 \tcode{T}''
 is a different type from the type
 ``\nonterminal{derived-declarator-type-list} array of unknown bound of
-\tcode{T}'',
+\tcode{T},''
 see~\ref{basic.types}.
 Any type of the form
 ``\nonterminal{cv-qualifier-seq} array of
@@ -1082,11 +976,10 @@ is adjusted to
 ``array of
 \tcode{N}
 \nonterminal{cv-qualifier-seq}
-\tcode{T}'',
+\tcode{T},''
 and similarly for
 ``array of unknown bound of
-\tcode{T}''.
-The optional \grammarterm{attribute-specifier-seq} appertains to the array.
+\tcode{T}.''
 \enterexample
 
 \begin{codeblock}
@@ -1094,14 +987,16 @@ typedef int A[5], AA[2][3];
 typedef const A CA;             // type is ``array of 5 const int''
 typedef const AA CAA;           // type is ``array of 2 array of 3 const int''
 \end{codeblock}
-\exitexample
+\exitexampleb
 \enternote
-An
+an
 ``array of
 \tcode{N}
 \nonterminal{cv-qualifier-seq}
 \tcode{T}''
-has cv-qualified type; see~\ref{basic.type.qualifier}.
+has cv-qualified type; such an array has internal linkage unless explicitly
+declared \tcode{extern}~(\ref{dcl.type.cv}) and must be initialized as
+specified in~\ref{dcl.init}.
 \exitnote
 
 \pnum
@@ -1116,13 +1011,14 @@ or from another array.
 \pnum
 When several ``array of'' specifications are adjacent, a multidimensional
 array is created;
-only the first of
 the constant expressions that specify the bounds
-of the arrays may be omitted.
-In addition to declarations in which an incomplete object type is allowed,
-an array bound may be omitted in some cases in the declaration of a function
-parameter~(\ref{dcl.fct}).
-An array bound may
+of the arrays can be omitted only for the first member of the sequence.
+\enternote
+this elision is useful for function parameters of array types, and when the
+array is external and the definition, which allocates storage, is given
+elsewhere.
+\exitnote
+The first \grammarterm{constant-expression} can
 also be omitted
 when the declarator is followed by an
 \grammarterm{initializer}
@@ -1137,10 +1033,6 @@ supplied
 is ``array of
 \tcode{N}
 \tcode{T}.''
-Furthermore, if there is a preceding declaration of the entity in the same
-scope in which the bound was specified, an omitted array bound is taken to
-be the same as in that earlier declaration, and similarly for the definition
-of a static data member of a class.
 
 \pnum
 \enterexample
@@ -1176,31 +1068,16 @@ Any of the expressions
 \tcode{x3d[i]},
 \tcode{x3d[i][j]},
 \tcode{x3d[i][j][k]}
-can reasonably appear in an expression. Finally,
-\begin{codeblock}
-extern int x[10];
-struct S {
-  static int y[10];
-};
-
-int x[];                      // OK: bound is 10
-int S::y[];                   // OK: bound is 10
-
-void f() {
-  extern int x[];
-  int i = sizeof(x);          // error: incomplete object type
-}
-\end{codeblock}
+can reasonably appear in an expression.
 \exitexample
 
 \pnum
 \enternote
-conversions affecting expressions of array type are described in~\ref{conv.array}.
+conversions affecting lvalues of array type are described in~\ref{conv.array}.
 Objects of array types cannot be modified, see~\ref{basic.lval}.
 \exitnote
 
 \pnum
-\enternote
 Except where it has been declared for a class (\ref{over.sub}),
 the subscript operator
 \tcode{[]}
@@ -1241,7 +1118,6 @@ $i \times j \times \ldots \times k$,
 then
 \tcode{E}
 appearing in an expression
-that is subject to the array-to-pointer conversion~(\ref{conv.array})
 is converted to
 a pointer to an $(n-1)$-dimensional
 array with rank
@@ -1270,7 +1146,7 @@ When
 appears in an expression, it is converted
 to a pointer to (the first of three) five-membered arrays of integers.
 In the expression
-\tcode{x[i]}
+\tcode{x[i]},
 which is equivalent to
 \tcode{*(x+i)},
 \tcode{x}
@@ -1290,11 +1166,10 @@ a pointer to the first of the integers.
 If there is another subscript the same argument applies
 again; this time the result is an integer.
 \exitexample
-\exitnote
 
 \pnum
 \enternote
-It follows from all this that arrays in \Cpp are stored
+it follows from all this that arrays in \Cpp are stored
 row-wise (last subscript varies fastest)
 \indextext{array!storage~of}%
 and that the first subscript in the declaration helps determine
@@ -1315,8 +1190,8 @@ where
 has the form
 
 \begin{ncsimplebnf}
-\terminal{D1 (} parameter-declaration-clause \terminal{)} cv-qualifier-seq\opt\br
-\hspace*{\bnfindentinc}ref-qualifier\opt exception-specification\opt attribute-specifier-seq\opt
+\terminal{D1 (} parameter-declaration-clause \terminal{)} cv-qualifier-seq\opt
+exception-specification\opt
 \end{ncsimplebnf}
 
 and the type of the contained
@@ -1326,48 +1201,23 @@ in the declaration
 \tcode{D1}
 is
 ``\grammarterm{derived-declarator-type-list}
-\tcode{T}'',
+\tcode{T},''
 the type of the
 \grammarterm{declarator-id}
 in
 \tcode{D}
 is ``\nonterminal{derived-declarator-type-list} function of
 (\nonterminal{parameter-declaration-clause} )
-\nonterminal{cv-qualifier-seq\opt} \nonterminal{ref-qualifier\opt} returning
-\tcode{T}''.
-The optional \grammarterm{attribute-specifier-seq} appertains to the function type.
-
-\pnum
-In a declaration
-\tcode{T}
-\tcode{D}
-where
-\tcode{D}
-has the form
-
-\begin{ncsimplebnf}
-\terminal{D1 (} parameter-declaration-clause \terminal{)} cv-qualifier-seq\opt\br
-\hspace*{\bnfindentinc}ref-qualifier\opt exception-specification\opt attribute-specifier-seq\opt trailing-return-type
-\end{ncsimplebnf}
-
-and the type of the contained \grammarterm{declarator-id} in the declaration \tcode{T}
-\tcode{D1} is ``\grammarterm{derived-declarator-type-list} \tcode{T}'', \tcode{T} shall
-be the single \grammarterm{type-specifier} \tcode{auto}. The type of the
-\grammarterm{declarator-id} in \tcode{D} is
-``\grammarterm{derived-declarator-type-list} function of
-(\grammarterm{parameter-declaration-clause}) \grammarterm{cv-qualifier-seq}\opt
-\grammarterm{ref-qualifier}\opt returning \grammarterm{trailing-return-type}''. The
-optional \grammarterm{attribute-specifier-seq} appertains to the function type.
-
-\pnum
-\indextext{type!function}%
-A type of either form is a \term{function type}.\footnote{As indicated by syntax, cv-qualifiers are a signficant component in function return types.}
+\nonterminal{cv-qualifier-seq\opt} returning
+\tcode{T}'';
+a type of this form is a \term{function type}\footnote{As indicated by the
+syntax, cv-qualifiers are a significant component in function return types.}.
 
 \indextext{declaration!function}%
 \begin{bnf}
 \nontermdef{parameter-declaration-clause}\br
-    parameter-declaration-list\opt ...\opt\br
-    parameter-declaration-list \terminal{,} ...
+    parameter-declaration-list\opt \terminal{...}\opt\br
+    parameter-declaration-list \terminal{,} \terminal{...}
 \end{bnf}
 
 \begin{bnf}
@@ -1378,14 +1228,11 @@ A type of either form is a \term{function type}.\footnote{As indicated by syntax
 
 \begin{bnf}
 \nontermdef{parameter-declaration}\br
-    attribute-specifier-seq\opt decl-specifier-seq declarator\br
-    attribute-specifier-seq\opt decl-specifier-seq declarator \terminal{=} initializer-clause\br
-    attribute-specifier-seq\opt decl-specifier-seq abstract-declarator\opt\br
-    attribute-specifier-seq\opt decl-specifier-seq abstract-declarator\opt \terminal{=} initializer-clause
+    decl-specifier-seq declarator\br
+    decl-specifier-seq declarator \terminal{=} assignment-expression\br
+    decl-specifier-seq abstract-declarator\opt\br
+    decl-specifier-seq abstract-declarator\opt \terminal{=} assignment-expression
 \end{bnf}
-
-The optional \grammarterm{attribute-specifier-seq} in a \grammarterm{parameter-declaration}
-appertains to the parameter.
 
 \pnum
 \indextext{declaration!parameter}%
@@ -1422,15 +1269,12 @@ If the
 \indextext{declaration!ellipsis~in function}%
 \indextext{argument~list!variable}%
 \indextext{parameter~list!variable}%
-terminates with an ellipsis or a function parameter
-pack~(\ref{temp.variadic}), the number of arguments shall be equal
-to or greater than the number of parameters that do not have a default
-argument and are not function parameter packs.
-Where syntactically correct and where ``\nonterminal{...}'' is not
-part of an \grammarterm{abstract-declarator},
-``\nonterminal{, ...}''
+terminates with an ellipsis, the number of arguments shall be equal
+to or greater than the number of parameters specified.
+Where syntactically correct,
+``\tcode{, ...}''
 is synonymous with
-``\nonterminal{...}''.
+``\tcode{...}''.
 \enterexample
 \indextext{example!ellipsis}%
 \indextext{example!variable parameter~list}%
@@ -1453,22 +1297,24 @@ that can be converted to a
 \tcode{char*}
 \exitexample
 \enternote
-The standard header
+the standard header
 \tcode{<cstdarg>}
 \indextext{\idxhdr{cstdarg}}%
 contains a mechanism for accessing arguments passed using the ellipsis
-(see~\ref{expr.call} and~\ref{support.runtime}).
+(see~\ref{expr.call} and~\ref{lib.support.runtime}).
 \exitnote
 
 \pnum
 \indextext{overloading}%
 \indextext{type!function}%
 A single name can be used for several different functions in a single scope;
-this is function overloading (Clause~\ref{over}).
-All declarations for a function shall agree exactly
-in both the return type and the parameter-type-list.
+this is function overloading (clause~\ref{over}).
+All declarations for a function with a given parameter list shall agree exactly
+both in the type of the value returned and in the number and type of
+parameters; the presence or absence of the ellipsis is considered part of the
+function type.
 The type of a function is determined using the following rules.
-The type of each parameter (including function parameter packs) is
+The type of each parameter is
 determined from its own
 \grammarterm{decl-specifier-seq}
 and
@@ -1487,62 +1333,57 @@ or ``pointer to function returning
 \tcode{T},''
 respectively.
 After producing the list of parameter types,
-any top-level
-\grammarterm{cv-qualifier}{s}
-modifying a parameter type are deleted
-when forming the function type.
-The resulting list of transformed parameter types
-and the presence or absence of the ellipsis or a function parameter pack
-is the function's
-\grammarterm{parameter-type-list}.
-\enternote This transformation does not affect the types of the parameters.
-For example, \tcode{int(*)(const int p, decltype(p)*)} and
-\tcode{int(*)(int, const int*)} are identical types. \exitnote
+several transformations take place upon these types to determine the function
+type. Any
+\grammarterm{cv-qualifier}
+modifying a parameter type is deleted.
+\enterexample
+the type \tcode{void(*)(const int)} becomes \tcode{void(*)(int)}
+\exitexampleb
+Such \grammarterm{cv-qualifier}{s} affect only the definition of the
+parameter within the body of the function; they do not affect the function
+type. If a \grammarterm{storage-class-specifier} modifies a parameter type,
+the specifier is deleted.
+\enterexample
+\tcode{register char*} becomes \tcode{char*}
+\exitexampleb
+Such \grammarterm{storage-class-specifier}{s} affect only the definition
+of the parameter within the body of the function; they do not affect the
+function type. The resulting list of transformed parameter type is the
+function's \term{parameter type list}.
 
 \pnum
 A
 \grammarterm{cv-qualifier-seq}
-or a \grammarterm{ref-qualifier}
-shall only be part of:
-\begin{itemize}
-\item the function type for a non-static member function,
-
-\item the function type to which a pointer to member refers,
-
-\item the top-level function type of a function typedef declaration
-or \grammarterm{alias-declaration},
-
-\item the \grammarterm{type-id} in the default argument of a
-\grammarterm{type-parameter}~(\ref{temp.param}), or
-
-\item the \grammarterm{type-id} of a \grammarterm{template-argument} for a
-\grammarterm{type-parameter}~(\ref{temp.names}).
-\end{itemize}
-
+shall only be part of
+the function type for a nonstatic member function,
+the function type to which a pointer to member refers,
+or the top-level function type of a function typedef declaration.
 The effect of a
 \grammarterm{cv-qualifier-seq}
 in a function declarator is not the same as
-adding cv-qualification on top of the function type.
-In the latter case, the cv-qualifiers are ignored.
-\enternote a function type that has a \grammarterm{cv-qualifier-seq} is not a
-cv-qualified type; there are no cv-qualified function types. \exitnote
+adding cv-qualification on top of the function type, i.e., it does not
+create a cv-qualified function type.
+In fact, if at any time in the determination of a type a cv-qualified
+function type is formed, the program is ill-formed.
 \enterexample
 
 \begin{codeblock}
 typedef void F();
 struct S {
-  const F f;        // OK: equivalent to: \tcode{void f();}
+	const F f;		// ill-formed:
+				// not equivalent to: \tcode{void f() const;}
 };
 \end{codeblock}
-\exitexample
-The return type, the parameter-type-list, the \grammarterm{ref-qualifier}, and the
+\exitexampleb
+The return type, the parameter type list and the
 \grammarterm{cv-qualifier-seq},
 but not the default arguments (\ref{dcl.fct.default})
 or the exception specification (\ref{except.spec}),
 are part of the function type.
 \enternote
-Function types are checked during the assignments and initializations of
-pointers to functions, references to functions, and pointers to member functions.
+function types are checked during the assignments and initializations of
+pointers-to functions, references-to-functions, and pointers-to-member-functions.
 \exitnote
 
 \pnum
@@ -1580,8 +1421,6 @@ Functions shall not have a return type of type array or function,
 although they may have a return type of type pointer or reference to such things.
 There shall be no arrays of functions, although there can be arrays of pointers
 to functions.
-
-\pnum
 Types shall not be defined in return or parameter types.
 The type of a parameter or the return type for a function
 definition shall not be an incomplete class type (possibly
@@ -1599,14 +1438,14 @@ used to define a function (\ref{dcl.fct.def}).
 
 \begin{codeblock}
 typedef void F();
-F  fv;              // OK: equivalent to \tcode{void fv();}
-F  fv { }           // ill-formed
-void fv() { }       // OK: definition of \tcode{fv}
+F  fv;				// OK: equivalent to \tcode{void fv();}
+F  fv { }			// ill-formed
+void fv() { }			// OK: definition of \tcode{fv}
 \end{codeblock}
-\exitexample
+\exitexampleb
 A typedef of a function type whose declarator includes a
 \grammarterm{cv-qualifier-seq}
-shall be used only to declare the function type for a non-static member function,
+shall be used only to declare the function type for a nonstatic member function,
 to declare the function type to which a pointer to member refers,
 or to declare the top-level function type of another function typedef
 declaration.
@@ -1614,24 +1453,25 @@ declaration.
 
 \begin{codeblock}
 typedef int FIC(int) const;
-FIC f;              // ill-formed: does not declare a member function
+FIC f;				// ill-formed: does not declare a member function
 struct S {
-  FIC f;            // OK
+	FIC f;			// OK
 };
-FIC S::*pm = &S::f; // OK
+FIC S::*pm = &S::f;		// OK
 \end{codeblock}
-\exitexample
+\exitexampleb
 
 \pnum
 An identifier can optionally be provided as a parameter name;
 if present in a function definition (\ref{dcl.fct.def}), it names a parameter (sometimes called ``formal argument'').
 \enternote
-In particular, parameter names are also optional in function definitions
+in particular, parameter names are also optional in function definitions
 and names used for a parameter in different declarations and the definition
 of a function need not be the same.
 If a parameter name is present in a function declaration that is not a definition,
 it cannot be used outside of
-its function declarator because that is the extent of its potential scope~(\ref{basic.scope.proto}).
+the \grammarterm{parameter-declaration-clause} since it goes out of scope
+at the end of the function declarator~(\ref{basic.scope}).
 \exitnote
 
 \pnum
@@ -1686,7 +1526,7 @@ the extra parentheses are necessary to indicate that indirection through
 a pointer to a function yields a function, which is then called.
 \exitexample
 \enternote
-Typedefs and \grammarterm{trailing-return-type}{s} are sometimes convenient when the return type of a function is complex.
+typedefs are sometimes convenient when the return type of a function is complex.
 For example,
 the function
 \tcode{fpif}
@@ -1696,72 +1536,15 @@ above could have been declared
 typedef int  IFUNC(int);
 IFUNC*  fpif(int);
 \end{codeblock}
+\exitnoteb
 
-or
-
-\begin{codeblock}
-auto fpif(int)->int(*)(int)
-\end{codeblock}
-
-A \grammarterm{trailing-return-type} is most useful for a type that would be more complicated to specify before the \grammarterm{declarator-id}:
-
-\begin{codeblock}
-template <class T, class U> auto add(T t, U u) -> decltype(t + u);
-\end{codeblock}
-
-rather than
-
-\begin{codeblock}
-template <class T, class U> decltype((*(T*)0) + (*(U*)0)) add(T t, U u);
-\end{codeblock}
-\exitnote
-
-\pnum
-A \grammarterm{declarator-id} or \grammarterm{abstract-declarator}
-containing an ellipsis shall only
-be used in a \grammarterm{parameter-declaration}. Such a
-\grammarterm{parameter-declaration} is a parameter
-pack~(\ref{temp.variadic}). When it is part of a
-\grammarterm{parameter-declaration-clause}, the parameter pack is a
-function parameter pack~(\ref{temp.variadic}). \enternote
-Otherwise, the \grammarterm{parameter-declaration} is part of a
-\grammarterm{template-parameter-list} and the parameter pack is a
-template parameter pack; see~\ref{temp.param}. \exitnote
-A function parameter pack is a pack expansion~(\ref{temp.variadic}).
-\enterexample
-
-\begin{codeblock}
-template<typename... T> void f(T (* ...t)(int, int));
-
-int add(int, int);
-float subtract(int, int);
-
-void g() {
-  f(add, subtract);
-}
-\end{codeblock}
-\exitexample
-
-\pnum
-There is a syntactic ambiguity when an ellipsis occurs at the end
-of a \grammarterm{parameter-declaration-clause} without a preceding
-comma. In this case, the ellipsis is parsed as part of the
-\grammarterm{abstract-declarator} if the type of the parameter names
-a template parameter pack that has not been expanded; otherwise, it is
-parsed as part of the \grammarterm{parameter-declaration-clause}.\footnote{One can explicitly disambiguate the parse either by
-introducing a comma (so the ellipsis will be parsed as part of the
-\grammarterm{parameter-declaration-clause}) or by introducing a name for the
-parameter (so the ellipsis will be parsed as part of the
-\grammarterm{declarator-id}).}%
 \indextext{declarator!function|)}
 
 \rSec2[dcl.fct.default]{Default arguments}%
 \indextext{declaration!default argument|(}
 
 \pnum
-If an \grammarterm{initializer-clause}{} is specified in a
-\grammarterm{parameter-declaration}{} this
-\grammarterm{initializer-clause}{}
+If an expression is specified in a parameter declaration this exception
 is used as a default argument.
 Default arguments will be used in calls where trailing arguments are missing.
 
@@ -1790,14 +1573,11 @@ respectively.
 \exitexample
 
 \pnum
-A default argument shall be specified only in the
+A default argument expression shall be specified only in the
 \grammarterm{parameter-declaration-clause}
 of a function declaration or in a
 \grammarterm{template-parameter}
-(\ref{temp.param});
-in the latter case, the \grammarterm{initializer-clause} shall be an
-\grammarterm{assignment-expression}.
-A default argument shall not be specified for a parameter pack.
+(\ref{temp.param}).
 If it is specified in a
 \grammarterm{parameter-declaration-clause},
 it shall not occur within a
@@ -1823,59 +1603,56 @@ That
 is, declarations in inner scopes do not acquire default
 arguments from declarations in outer scopes, and vice versa.
 In
-a given function declaration, each parameter subsequent to a
-parameter with a default argument shall have a default argument
-supplied in this or a previous declaration
-or shall be a function parameter pack.
+a given function declaration, all parameters subsequent to a
+parameter with a default argument shall have default arguments
+supplied in this or previous declarations.
 A default argument
 shall not be redefined by a later declaration (not even to the
 same value).
 \enterexample
 
 \begin{codeblock}
-void g(int = 0, ...);           // OK, ellipsis is not a parameter so it can follow
-                                // a parameter with a default argument
 void f(int, int);
 void f(int, int = 7);
-void h() {
-  f(3);                         // OK, calls \tcode{f(3, 7)}
-  void f(int = 1, int);         // error: does not use default
+void h()
+{
+    f(3);                       // OK, calls \tcode{f(3, 7)}
+    void f(int = 1, int);       // error: does not use default
                                 // from surrounding scope
 }
-void m() {
-  void f(int, int);             // has no defaults
-  f(4);                         // error: wrong number of arguments
-  void f(int, int = 5);         // OK
-  f(4);                         // OK, calls \tcode{f(4, 5);}
-  void f(int, int = 5);         // error: cannot redefine, even to
+void m()
+{
+    void f(int, int);           // has no defaults
+    f(4);                       // error: wrong number of arguments
+    void f(int, int = 5);       // OK
+    f(4);                       // OK, calls \tcode{f(4, 5);}
+    void f(int, int = 5);       // error: cannot redefine, even to
                                 // same value
 }
-void n() {
-  f(6);                         // OK, calls \tcode{f(6, 7)}
+void n()
+{
+    f(6);                       // OK, calls \tcode{f(6, 7)}
 }
 \end{codeblock}
-\exitexample
+\exitexampleb
 For a given inline function defined in different translation units,
 the accumulated sets of default arguments at the end of the
 translation units shall be the same;
 see~\ref{basic.def.odr}.
-If a friend declaration specifies a default argument expression,
-that declaration shall be a definition and shall be the only
-declaration of the function or function template in the translation unit.
 
 \pnum
 \indextext{argument!type~checking~of default}%
 \indextext{argument!binding~of default}%
 \indextext{argument!evaluation~of default}%
-A default argument is implicitly converted (Clause~\ref{conv})
+A default argument expression is implicitly converted (clause~\ref{conv})
 to the parameter type.
-The default argument has the
-same semantic constraints as the initializer in a
+The default argument expression has the
+same semantic constraints as the initializer expression in a
 declaration of a variable of the parameter type, using the
 copy-initialization semantics (\ref{dcl.init}).
-The names in the
-default argument are bound, and the semantic constraints are checked,
-at the point where the default argument appears.
+The names in the expression
+are bound, and the semantic constraints are checked,
+at the point where the default argument expression appears.
 Name lookup and checking of semantic constraints for default
 arguments in function templates and in member functions of
 class templates are performed as described in~\ref{temp.inst}.
@@ -1892,20 +1669,20 @@ int f(int);
 int g(int x = f(a));            // default argument: \tcode{f(::a)}
 
 void h() {
-  a = 2;
-  {
-  int a = 3;
-  g();                          // \tcode{g(f(::a))}
-  }
+    a = 2;
+    {
+	int a = 3;
+	g();                    // \tcode{g(f(::a))}
+    }
 }
 \end{codeblock}
-\exitexample
+\exitexampleb
 \enternote
-In member function declarations,
-names in default arguments are looked up
+in member function declarations,
+names in default arguments expressions are looked up
 as described in~\ref{basic.lookup.unqual}.
-Access checking applies to names in default arguments as
-described in Clause~\ref{class.access}.
+Access checking applies to names in default arguments expressions as
+described in clause~\ref{class.access}.
 \exitnote
 
 \pnum
@@ -1921,29 +1698,30 @@ function within the class template.
 
 \begin{codeblock}
 class C {
-  void f(int i = 3);
-  void g(int i, int j = 99);
+	void f(int i = 3);
+	void g(int i, int j = 99);
 };
 
-void C::f(int i = 3) {          // error: default argument already
-}                               // specified in class scope
-void C::g(int i = 88, int j) {  // in this translation unit,
-}                               // \tcode{C::g} can be called with no argument
+void C::f(int i = 3)            // error: default argument already
+{ }                             // specified in class scope
+void C::g(int i = 88, int j)    // in this translation unit,
+{ }                             // \tcode{C::g} can be called with no argument
 \end{codeblock}
-\exitexample
+\exitexampleb
 
 \pnum
-Local variables shall not be used in a default argument.
+Local variables shall not be used in a default argument expression.
 \enterexample
 
 \begin{codeblock}
-void f() {
-  int i;
-  extern void g(int x = i);     //error
-  // ...
+void f()
+{
+    int i;
+    extern void g(int x = i);   // error
+    // ...
 }
 \end{codeblock}
-\exitexample
+\exitexampleb
 
 \pnum
 The keyword
@@ -1953,10 +1731,10 @@ shall not be used in a default argument of a member function.
 
 \begin{codeblock}
 class A {
-  void f(A* p = this) { }       // error
+    void f(A* p = this) { }     // error
 };
 \end{codeblock}
-\exitexample
+\exitexampleb
 
 \pnum
 \indextext{argument!evaluation~of default}%
@@ -1966,42 +1744,43 @@ unspecified.
 \indextext{arguments!implementation-defined order~of~evaluation~of function}%
 \indextext{argument!scope~of default}%
 Consequently,
-parameters of a function shall not be used in a default argument,
+parameters of a function shall not be used in a default argument expressions,
 even if they are not evaluated.
 \indextext{argument~and~name~hiding!default}%
-Parameters of a function declared before a default argument
+Parameters of a function declared before a default argument expression
 are in scope and can hide namespace and class member names.
 \enterexample
 
 \begin{codeblock}
 int a;
-int f(int a, int b = a);            // error: parameter \tcode{a}
-                                    // used as default argument
+int f(int a, int b = a);		// error: parameter \tcode{a}
+					// used as default argument
 typedef int I;
-int g(float I, int b = I(2));       // error: parameter \tcode{I} found
-int h(int a, int b = sizeof(a));    // error, parameter \tcode{a} used
-                                    // in default argument
+int g(float I, int b = I(2));		// error: parameter \tcode{I} found
+int h(int a, int b = sizeof(a));	// error, parameter \tcode{a} used
+					// in default argument
 \end{codeblock}
-\exitexample
-Similarly, a non-static member shall not be used in a default argument, even if it is not evaluated, unless it appears as
+\exitexampleb
+Similarly, a nonstatic member shall not be used in a default argument
+expression, even if it is not evaluated, unless it appears as
 the \grammarterm{id-expression} of a class member access expression (\ref{expr.ref}) or
 unless it is used to form a pointer to member (\ref{expr.unary.op}).
 \enterexample
 the declaration of
 \tcode{X::mem1()}
 in the following example is ill-formed because no object is supplied for the
-non-static member
+nonstatic member
 \tcode{X::a}
 used as an initializer.
 
 \begin{codeblock}
 int b;
 class X {
-  int a;
-  int mem1(int i = a);          // error: non-static member \tcode{a}
+    int a;
+    int mem1(int i = a);        // error: nonstatic member \tcode{a}
                                 // used as default argument
-  int mem2(int i = b);          // OK;  use \tcode{X::b}
-  static int b;
+    int mem2(int i = b);        // OK;  use \tcode{X::b}
+    static int b;
 };
 \end{codeblock}
 
@@ -2009,7 +1788,7 @@ The declaration of
 \tcode{X::mem2()}
 is meaningful, however, since no object is needed to access the static member
 \tcode{X::b}.
-Classes, objects, and members are described in Clause~\ref{class}.
+Classes, objects, and members are described in clause~\ref{class}.
 \exitexample
 A default argument is not part of the
 type of a function.
@@ -2018,15 +1797,16 @@ type of a function.
 \begin{codeblock}
 int f(int = 0);
 
-void h() {
-  int j = f(1);
-  int k = f();                  // OK, means \tcode{f(0)}
+void h()
+{
+    int j = f(1);
+    int k = f();                // OK, means \tcode{f(0)}
 }
 
 int (*p1)(int) = &f;
 int (*p2)() = &f;               // error: type mismatch
 \end{codeblock}
-\exitexample
+\exitexampleb
 When a declaration of a function is introduced by way of a
 \grammarterm{using-declaration}
 (\ref{namespace.udecl}), any default argument information associated
@@ -2050,26 +1830,25 @@ acquire default arguments from the function it overrides.
 
 \begin{codeblock}
 struct A {
-  virtual void f(int a = 7);
+    virtual void f(int a = 7);
 };
 struct B : public A {
-  void f(int a);
+    void f(int a);
 };
-void m() {
-  B* pb = new B;
-  A* pa = pb;
-  pa->f();          // OK, calls \tcode{pa->B::f(7)}
-  pb->f();          // error: wrong number of arguments for \tcode{B::f()}
+void m()
+{
+    B* pb = new B;
+    A* pa = pb;
+    pa->f();			// OK, calls \tcode{pa->B::f(7)}
+    pb->f();			// error: wrong number of arguments for \tcode{B::f()}
 }
 \end{codeblock}
-\exitexample%
+\exitexampleb%
 \indextext{declaration!default argument|)}%
 \indextext{declarator!meaning~of|)}
 
 \rSec1[dcl.fct.def]{Function definitions}%
 \indextext{definition!function|(}
-
-\rSec2[dcl.fct.def.general]{In general}
 
 \pnum
 \indextext{body!function}%
@@ -2079,25 +1858,15 @@ Function definitions have the form
 %
 \begin{bnf}
 \nontermdef{function-definition}\br
-    attribute-specifier-seq\opt decl-specifier-seq\opt declarator virt-specifier-seq\opt function-body
+    decl-specifier-seq\opt declarator ctor-initializer\opt function-body\br
+    decl-specifier-seq\opt declarator function-try-block
 \end{bnf}
 
 \begin{bnf}
 function-body:\br
-    ctor-initializer\opt compound-statement\br
-    function-try-block\br
-    \terminal{= default ;}\br
-    \terminal{= delete ;}\br
+    compound-statement
 \end{bnf}
 
-Any informal reference to the body of a function should be interpreted as a reference to
-the non-terminal \grammarterm{function-body}.
-The optional \grammarterm{attribute-specifier-seq} in a \grammarterm{function-definition}
-appertains to the function.
-A \grammarterm{virt-specifier-seq} can be part of a \grammarterm{function-definition}
-only if it is a \grammarterm{member-declaration}~(\ref{class.mem}).
-
-\pnum
 The
 \grammarterm{declarator}
 in a
@@ -2105,8 +1874,8 @@ in a
 shall have the form
 
 \begin{ncsimplebnf}
-\terminal{D1 (} parameter-declaration-clause \terminal{)} cv-qualifier-seq\opt\br   
-    \hspace*{\bnfindentinc}ref-qualifier\opt exception-specification\opt attribute-specifier-seq\opt trailing-return-type\opt
+\terminal{D1 (} parameter-declaration-clause \terminal{)} cv-qualifier-seq\opt
+exception-specification\opt
 \end{ncsimplebnf}
 
 as described in~\ref{dcl.fct}.
@@ -2118,9 +1887,10 @@ a simple example of a complete function definition is
 
 \indextext{example!function definition}%
 \begin{codeblock}
-int max(int a, int b, int c) {
-  int m = (a > b) ? a : b;
-  return (m > c) ? m : c;
+int max(int a, int b, int c)
+{
+    int m = (a > b) ? a : b;
+    return (m > c) ? m : c;
 }
 \end{codeblock}
 
@@ -2151,233 +1921,24 @@ is used only in a constructor; see~\ref{class.ctor} and~\ref{class.init}.
 
 \pnum
 A
-\grammarterm{cv-qualifier-seq} or a \grammarterm{ref-qualifier} (or both)
+\grammarterm{cv-qualifier-seq}
 can be part of a non-static member function declaration, non-static member function definition,
-or pointer to member function only~(\ref{dcl.fct}); see~\ref{class.this}.
+or pointer to member function only; see~\ref{class.this}.
+It is part of the function type.
 
 \pnum
 \enternote
-Unused parameters need not be named.
+unused parameters need not be named.
 For example,
 
 \indextext{example!unnamed parameter}%
 \begin{codeblock}
-void print(int a, int) {
-  std::printf("a = %d\n",a);
+void print(int a, int)
+{
+    printf("a = %d\n",a);
 }
 \end{codeblock}
-\exitnote
-
-\pnum
-In the \grammarterm{function-body}, a
-\grammarterm{function-local predefined variable} denotes a block-scope object of static
-storage duration that is implicitly defined (see~\ref{basic.scope.local}).
-
-\pnum
-The function-local predefined variable \tcode{__func__} is
-defined as if a definition of the form
-
-\begin{codeblock}
-static const char __func__[] = "@\grammarterm{function-name}@";
-\end{codeblock}
-
-had been provided, where \grammarterm{function-name} is an \impldef{string resulting
-from \tcode{__func__}} string. It is unspecified whether such a variable has an address
-distinct from that of any other object in the program.\footnote{Implementations are
-permitted to provide additional predefined variables with names that are reserved to the
-implementation~(\ref{global.names}). If a predefined variable is not
-odr-used~(\ref{basic.def.odr}), its string value need not be present in the program image.}
-
-\enterexample
-\begin{codeblock}
-struct S {
-  S() : s(__func__) { }             // OK
-  const char *s;
-};
-void f(const char * s = __func__);  // error: \tcode{__func__} is undeclared
-\end{codeblock}
-\exitexample
-
-\rSec2[dcl.fct.def.default]{Explicitly-defaulted functions}%
-\indextext{definition!function!explicitly-defaulted}
-
-\pnum
-A function definition of the form:
-
-\begin{ncbnf}
-    attribute-specifier-seq\opt decl-specifier-seq\opt declarator \terminal{ = default ;}
-\end{ncbnf}
-
-is called an \grammarterm{explicitly-defaulted} definition.
-A function that is explicitly defaulted shall
-
-\begin{itemize}
-\item be a special member function,
-
-\item have the same declared function type (except for possibly differing
-\grammarterm{ref-qualifier}{s} and except that in the case of a copy constructor or
-copy assignment operator, the parameter type may be ``reference to non-const \tcode{T}'',
-where \tcode{T} is the name of the member function's class) as if it had been implicitly
-declared, and
-
-\item not have default arguments.
-\end{itemize}
-
-\pnum
-An explicitly-defaulted function may be declared
-\tcode{constexpr} only if it would have been implicitly declared as
-\tcode{constexpr},
-and may have an explicit \grammarterm{exception-specification} only if it is
-compatible~(\ref{except.spec}) with the \grammarterm{exception-specification}
-on the implicit declaration. If
-a function is explicitly defaulted on its first declaration,
-
-\begin{itemize}
-\item it is implicitly considered to be \tcode{constexpr} if the implicit
-declaration would be,
-\item it is implicitly considered to have the same \grammarterm{exception-specification}
-as if it had been implicitly declared~(\ref{except.spec}), and
-\item in the case of a copy constructor, move constructor,
-copy assignment operator, or move assignment operator, it shall have the
-same parameter type as if it had been implicitly declared.
-\end{itemize}
-
-\pnum
-\enterexample
-\begin{codeblock}
-struct S {
-  constexpr S() = default;                  // ill-formed: implicit \tcode{S()} is not \tcode{constexpr}
-  S(int a = 0) = default;                   // ill-formed: default argument
-  void operator=(const S&) = default;       // ill-formed: non-matching return type
-  ~S() throw(int) = default;                // ill-formed: exception specification does not match
-private:
-  int i;
-  S(S&);                                    // OK: private copy constructor
-};
-S::S(S&) = default;                         // OK: defines copy constructor
-\end{codeblock}
-\exitexample
-
-\pnum
-Explicitly-defaulted functions and implicitly-declared functions are collectively
-called \defn{defaulted} functions, and the implementation
-shall provide implicit definitions
-for them~(\ref{class.ctor}
-\ref{class.dtor}, \ref{class.copy}), which might mean defining them as deleted.
-A special member function is
-\defn{user-provided} if it is user-declared and not explicitly
-defaulted or deleted on its first declaration. A user-provided explicitly-defaulted function
-(i.e., explicitly defaulted after its first declaration)
-is defined at the point where it is explicitly defaulted; if such a function is implicitly
-defined as deleted, the program is ill-formed.
-\enternote
-Declaring a function as defaulted after its first declaration can provide
-efficient execution and concise
-definition while enabling a stable binary interface to an evolving code
-base.\exitnote
-
-\pnum
-\enterexample
-
-\begin{codeblock}
-struct trivial {
-  trivial() = default;
-  trivial(const trivial&) = default;
-  trivial(trivial&&) = default;
-  trivial& operator=(const trivial&) = default;
-  trivial& operator=(trivial&&) = default;
-  ~trivial() = default;
-};
-
-struct nontrivial1 {
-  nontrivial1();
-};
-nontrivial1::nontrivial1() = default;           // not first declaration
-\end{codeblock}
-\exitexample
-
-\rSec2[dcl.fct.def.delete]{Deleted definitions}%
-\indextext{definition!function!deleted}
-
-\pnum
-A function definition of the form:
-
-\begin{ncbnf}
-    attribute-specifier-seq\opt decl-specifier-seq\opt declarator \terminal{ = delete ;}
-\end{ncbnf}
-
-is called a \term{deleted definition}. A function with a
-deleted definition is also called a \term{deleted function}.
-
-\pnum
-A program that refers to a deleted function implicitly or explicitly, other
-than to declare it, is ill-formed. \enternote This includes calling the function
-implicitly or explicitly and forming a pointer or pointer-to-member to the
-function. It applies even for references in expressions that are not
-potentially-evaluated. If a function is overloaded, it is referenced only if the
-function is selected by overload resolution. \exitnote
-
-\pnum
-\enterexample One can enforce non-default initialization and non-integral
-initialization with
-
-\begin{codeblock}
-struct sometype {
-  sometype() = delete;              // OK, but redundant
-  some_type(std::intmax_t) = delete;
-  some_type(double);
-};
-\end{codeblock}
-
-\exitexample
-
-\enterexample One can prevent use of a
-class in certain \tcode{new} expressions by using deleted definitions
-of a user-declared \tcode{operator new} for that class.
-
-\begin{codeblock}
-struct sometype {
-  void *operator new(std::size_t) = delete;
-  void *operator new[](std::size_t) = delete;
-};
-sometype *p = new sometype;     // error, deleted class \tcode{operator new}
-sometype *q = new sometype[3];  // error, deleted class \tcode{operator new[]}
-\end{codeblock}
-\exitexample
-
-\enterexample One can make a class uncopyable, i.e. move-only, by using deleted
-definitions of the copy constructor and copy assignment operator, and then
-providing defaulted definitions of the move constructor and move assignment operator.
-
-\begin{codeblock}
-struct moveonly {
-  moveonly() = default;
-  moveonly(const moveonly&) = delete;
-  moveonly(moveonly&&) = default;
-  moveonly& operator=(const moveonly&) = delete;
-  moveonly& operator=(moveonly&&) = default;
-  ~moveonly() = default;
-};
-moveonly *p;
-moveonly q(*p); // error, deleted copy constructor
-\end{codeblock}
-\exitexample
-
-\pnum
-A deleted function is implicitly inline. \enternote The
-one-definition rule~(\ref{basic.def.odr}) applies to deleted definitions. \exitnote
-A deleted definition of a function shall be the first declaration of the function or,
-for an explicit specialization of a function template, the first declaration of that
-specialization.
-\enterexample
-\begin{codeblock}
-struct sometype {
-  sometype();
-};
-sometype::sometype() = delete;      // ill-formed; not first declaration
-\end{codeblock}
-\exitexample%
-\indextext{definition!function|)}
+\exitnoteb
 
 \rSec1[dcl.init]{Initializers}%
 \indextext{initialization|(}
@@ -2385,7 +1946,7 @@ sometype::sometype() = delete;      // ill-formed; not first declaration
 \pnum
 A declarator can specify an initial value for the
 identifier being declared.
-The identifier designates a variable being initialized.
+The identifier designates an object or reference being initialized.
 The process of initialization described in the
 remainder of~\ref{dcl.init}
 applies also to initializations
@@ -2395,43 +1956,29 @@ the initialization of return values (\ref{stmt.return}).
 
 \begin{bnf}
 \nontermdef{initializer}\br
-    brace-or-equal-initializer\br
-    \terminal{(} expression-list \terminal{)}
-\end{bnf}
-
-\begin{bnf}
-\nontermdef{brace-or-equal-initializer}\br
     \terminal{=} initializer-clause\br
-    braced-init-list
+    \terminal{(} expression-list \terminal{)}
 \end{bnf}
 
 \begin{bnf}
 \nontermdef{initializer-clause}\br
     assignment-expression\br
-    braced-init-list
-\end{bnf}
-
-\begin{bnf}
-\nontermdef{initializer-list}\br
-    initializer-clause \terminal{...}\opt\br
-    initializer-list \terminal{,} initializer-clause \terminal{...}\opt
-\end{bnf}
-
-\begin{bnf}
-\nontermdef{braced-init-list}\br
     \terminal{\{} initializer-list \terminal{,\opt} \terminal{\}}\br
     \terminal{\{} \terminal{\}}
 \end{bnf}
 
+\begin{bnf}
+\nontermdef{initializer-list}\br
+    initializer-clause\br
+    initializer-list \terminal{,} initializer-clause
+\end{bnf}
+
 \pnum
-Except for objects declared with the \tcode{constexpr} specifier, for which see~\ref{dcl.constexpr},
-an \grammarterm{initializer} in the definition of a variable can consist of
-arbitrary
 \indextext{initialization!automatic object}%
 \indextext{initialization!static object@\tcode{static} object}%
-expressions involving literals and previously declared
-variables and functions,
-regardless of the variable's storage duration.
+Automatic, register, static, and external variables of namespace scope
+can be initialized by arbitrary expressions involving literals and
+previously declared variables and functions.
 \enterexample
 
 \begin{codeblock}
@@ -2440,14 +1987,14 @@ int a = 2;
 int b = f(a);
 int c(b);
 \end{codeblock}
-\exitexample
+\exitexampleb
 
 \pnum
 \enternote
-Default arguments are more restricted; see~\ref{dcl.fct.default}.
+default arguments expressions are more restricted; see~\ref{dcl.fct.default}.
 
 \pnum
-The order of initialization of variables with static storage duration is described in~\ref{basic.start}
+The order of initialization of static objects is described in~\ref{basic.start}
 and~\ref{stmt.dcl}.
 \exitnote
 
@@ -2458,7 +2005,7 @@ and~\ref{stmt.dcl}.
 \indextext{zero-initialization}%
 To
 \grammarterm{zero-initialize}
-an object or reference of type
+an object of type
 \tcode{T}
 means:
 
@@ -2470,28 +2017,25 @@ is a scalar type (\ref{basic.types}), the
 object
 is set to the value
 \tcode{0}
-(zero), taken as an integral constant expression, converted to
-\tcode{T};\footnote{As specified in~\ref{conv.ptr}, converting an integral
-constant expression whose value is
-\tcode{0}
-to a pointer type results in a null pointer value.
-}
+(zero) converted to
+\tcode{T};
 
 \item
 if
 \tcode{T}
-is a (possibly cv-qualified) non-union class type,
-each non-static data member and each
-base-class subobject is zero-initialized and padding is initialized to zero bits;
+is a non-union class type,
+each nonstatic data member and each
+base-class subobject is zero-initialized;
 
 \item
 if
 \tcode{T}
-is a (possibly cv-qualified) union type,
+is a union type,
 the
-object's first non-static named
-data member
-is zero-initialized and padding is initialized to zero bits;
+object's first named
+data member\footnote{This member must not be \tcode{static}, by virtue of
+the requirements in~\ref{class.union}.}
+is zero-initialized;
 
 \item
 if
@@ -2504,7 +2048,6 @@ if
 is a reference type, no initialization is performed.
 \end{itemize}
 
-\pnum
 \indextext{default-initialization}%
 To
 \grammarterm{default-initialize}
@@ -2516,7 +2059,7 @@ means:
 \item
 if
 \tcode{T}
-is a (possibly cv-qualified) class type (Clause~\ref{class}), the default constructor for
+is a non-POD class type (clause~\ref{class}), the default constructor for
 \tcode{T}
 is called (and the initialization is ill-formed if
 \tcode{T}
@@ -2528,14 +2071,9 @@ if
 is an array type, each element is default-initialized;
 
 \item
-otherwise,
-no initialization is performed.
+otherwise, the object is zero-initialized.
 \end{itemize}
 
-If a program calls for the default initialization of an object of a
-const-qualified type \tcode{T}, \tcode{T} shall be a class type with a user-provided default constructor.
-
-\pnum
 \indextext{value-initialization}%
 To
 \grammarterm{value-initialize}
@@ -2547,7 +2085,7 @@ means:
 \item
 if
 \tcode{T}
-is a (possibly cv-qualified) class type (Clause~\ref{class}) with a user-provided
+is a class type (clause~\ref{class}) with a user-declared
 constructor (\ref{class.ctor}), then the default constructor for
 \tcode{T}
 is called (and the initialization is ill-formed if
@@ -2557,9 +2095,9 @@ has no accessible default constructor);
 \item
 if
 \tcode{T}
-is a (possibly cv-qualified) non-union class type without a user-provided constructor,
-then the object is zero-initialized and, if \tcode{T}'s implicitly-declared default
-constructor is non-trivial, that constructor is called.
+is a non-union class type without a user-provided constructor,
+then every non-static data member and base-class component of \tcode{T}
+is value-initialized;
 
 \item
 if
@@ -2567,26 +2105,24 @@ if
 is an array type, then each element is value-initialized;
 
 \item
-otherwise, the object is zero-initialized.
+otherwise, the object is zero-initialized
 \end{itemize}
 
-An object that is value-initialized is deemed to be constructed and thus subject to
-provisions of this International Standard applying to ``constructed'' objects, objects
-``for which the constructor has completed,'' etc., even if no constructor is invoked
-for the object's initialization.
-
-\pnum
 A program that calls for default-initialization
 or value-initialization
 of an entity
 of reference type is ill-formed.
+If \tcode{T} is a cv-qualified type, the cv-unqualified version of
+\tcode{T} is used for these definitions of zero-initialization,
+default-initialization, and value-initialization.
 
 \pnum
-\enternote Every
-object of static storage duration is
+Every
+object of static storage duration shall be
 zero-initialized at program startup before any other initialization
 takes place.
-In some cases, additional initialization is done later.
+\enternote
+in some cases, additional initialization is done later.
 \exitnote
 
 \pnum
@@ -2595,9 +2131,10 @@ An object whose initializer is an empty set of parentheses, i.e.,
 shall be
 value-initialized.
 
+\pnum
 \indextext{ambiguity!function declaration}%
 \enternote
-Since
+since
 \tcode{()}
 is not permitted by the syntax for
 \grammarterm{initializer},
@@ -2617,12 +2154,19 @@ is permitted in certain other initialization contexts (\ref{expr.new},
 \exitnote
 
 \pnum
-If no initializer is specified for an object, the object is default-initialized;
-if no initialization is performed, an object
-with automatic or dynamic storage duration
-has indeterminate value.
-\enternote Objects with static or thread storage duration are zero-initialized,
-see~\ref{basic.start.init}. \exitnote
+If no initializer is specified for an object, and the object is of (possibly
+cv-qualified) non-POD class type (or array thereof), the object shall be
+default-initialized;
+if the object is of const-qualified type, the underlying class type shall
+have a user-declared default constructor.
+Otherwise,
+if no initializer is specified for a non-static object,
+the object and its subobjects, if any, have an indeterminate value%
+\footnote{This does not apply to aggregate objects with automatic storage
+duration initialized with an incomplete brace-enclosed
+\grammarterm{initializer-list}; see~\ref{dcl.init.aggr}.};
+if the object or any of its subobjects are of const-qualified type, the
+program is ill-formed.
 
 \pnum
 \indextext{initialization!class~member}%
@@ -2633,58 +2177,58 @@ An initializer for a static member is in the scope of the member's class.
 int a;
 
 struct X {
-  static int a;
-  static int b;
+    static int a;
+    static int b;
 };
 
 int X::a = 1;
-int X::b = a;       // \tcode{X::b = X::a}
+int X::b = a;			// \tcode{X::b = X::a}
 \end{codeblock}
-\exitexample
+\exitexampleb
 
 \pnum
 The form of initialization (using parentheses or
 \tcode{=})
-is generally insignificant, but does matter when the initializer or the entity
+is generally insignificant, but does matter when the entity
 being initialized has a class type; see below.
-If the entity being initialized does not have class type, the
-\grammarterm{expression-list} in a
-parenthesized initializer shall be a single expression.
+A parenthesized initializer can be a list of expressions
+only when the entity being initialized has a class type.
 
 \pnum
 \indextext{initialization!copy}%
 \indextext{initialization!direct}%
-The initialization that occurs in the form
+The initialization that occurs in argument passing, function return,
+throwing an exception~(\ref{except.throw}), handling an
+exception~(\ref{except.handle}), and brace-enclosed initializer
+lists~(\ref{dcl.init.aggr}) is called \defn{copy-initialization}
+and is equivalent to the form
 
 \begin{codeblock}
 T x = a;
 \end{codeblock}
 
-as well as in argument passing, function return,
-throwing an exception (\ref{except.throw}),
-handling an exception (\ref{except.handle}),
-and aggregate member initialization~(\ref{dcl.init.aggr})
-is called
-\defn{copy-initialization}.
-\enternote Copy-initialization may invoke a move~(\ref{class.copy}). \exitnote
-
-\pnum
-The initialization that occurs in the forms
+The initialization that occurs in \tcode{new} expressions~(\ref{expr.new}),
+\tcode{static_cast} expressions~(\ref{expr.static.cast}), functional
+notation type conversions~(\ref{expr.type.conv}), and base and member
+initializers~(\ref{class.base.init}) is called \defn{direct-initialization}
+and is equivalent to the form
 
 \begin{codeblock}
 T x(a);
-T x{a};
 \end{codeblock}
 
-as well as in
-\tcode{new}
-expressions (\ref{expr.new}),
-\tcode{static_cast}
-expressions (\ref{expr.static.cast}),
-functional notation type conversions (\ref{expr.type.conv}),
-and base and member initializers (\ref{class.base.init})
-is called
-\grammarterm{direct-initialization}.
+\pnum
+If \tcode{T} is a scalar type, then a declaration of the form
+
+\begin{codeblock}
+T x = { a };
+\end{codeblock}
+
+is equivalent to
+
+\begin{codeblock}
+T x = a;
+\end{codeblock}
 
 \pnum
 The semantics of initializers are as follows.
@@ -2694,29 +2238,26 @@ The
 is the type of the object or reference being initialized and the
 \term{source type}
 is the type of the initializer expression.
-If the initializer is not a single (possibly parenthesized) expression, the
-source type is not defined.
+The source type is not defined when the initializer is brace-enclosed or
+when it is a parenthesized list of expressions.
 
 \begin{itemize}
 \item
-If the initializer is a (non-parenthesized) \grammarterm{braced-init-list}, the object or reference
-is list-initialized~(\ref{dcl.init.list}).
-\item
 If the destination type is a reference type, see~\ref{dcl.init.ref}.
 \item
-If the destination type is an array of characters,
-an array of \tcode{char16_t},
-an array of \tcode{char32_t},
+If the destination type is an array of characters
 or an array of
 \tcode{wchar_t},
 and the initializer is a string literal, see~\ref{dcl.init.string}.
-\item If the initializer is \tcode{()}, the object is value-initialized.
 \item
-Otherwise, if the destination type is an array, the program is ill-formed.
+Otherwise, if the destination type is an array, see~\ref{dcl.init.aggr}.
 \item
 If the destination type is a (possibly cv-qualified) class type:
 
 \begin{itemize}
+\item
+If the class is an aggregate~(\ref{dcl.init.aggr}), and the initializer
+is a brace-enclosed list, see~\ref{dcl.init.aggr}.
 \item
 If the initialization is direct-initialization,
 or if it is copy-initialization where the cv-unqualified version of the source
@@ -2727,7 +2268,7 @@ are enumerated (\ref{over.match.ctor}), and the best one is chosen
 through overload resolution (\ref{over.match}).
 The constructor so selected
 is called to initialize the object, with the initializer
-expression or \grammarterm{expression-list} as its argument(s).
+expression(s) as its argument(s).
 If no constructor applies, or the overload resolution is
 ambiguous, the initialization is ill-formed.
 \item
@@ -2739,8 +2280,8 @@ resolution (\ref{over.match}).  If the conversion cannot be done or
 is ambiguous, the initialization is ill-formed.  The function
 selected is called with the initializer expression as its
 argument; if the function is a constructor, the call initializes
-a temporary of the cv-unqualified version of the
-destination type.  The temporary is a prvalue. The result of the call
+a temporary of the
+destination type. The result of the call
 (which is the temporary for the constructor case) is then used
 to direct-initialize, according to the rules above, the object
 that is the destination of the copy-initialization.  In certain
@@ -2765,7 +2306,7 @@ ambiguous, the initialization is ill-formed.
 \item
 Otherwise, the initial value of the object being initialized is
 the (possibly converted) value of the initializer expression.
-Standard conversions (Clause~\ref{conv}) will be used, if necessary,
+Standard conversions (clause~\ref{conv}) will be used, if necessary,
 to convert the initializer expression to the cv-unqualified version of
 the destination type;
 no user-defined conversions are considered.
@@ -2773,7 +2314,7 @@ If the conversion cannot
 be done, the initialization is ill-formed.
 \indextext{initialization!\idxcode{const}}%
 \enternote
-An expression of type
+an expression of type
 ``\nonterminal{cv1} \tcode{T}''
 can initialize an object of type
 ``\nonterminal{cv2} \tcode{T}''
@@ -2787,12 +2328,8 @@ int a;
 const int b = a;
 int c = b;
 \end{codeblock}
-\exitnote
+\exitnoteb
 \end{itemize}
-
-\pnum
-An \grammarterm{initializer-clause} followed by an ellipsis is a
-pack expansion~(\ref{temp.variadic}).
 
 \rSec2[dcl.init.aggr]{Aggregates}%
 \indextext{aggregate}%
@@ -2801,32 +2338,31 @@ pack expansion~(\ref{temp.variadic}).
 \indextext{initialization!array}%
 \indextext{initialization!class~object}%
 \indextext{class~object~initialization|see{constructor}}%
-\indextext{\idxcode{\{\}}!initializer list}
 
 \pnum
 An
 \term{aggregate}
-is an array or a class (Clause~\ref{class}) with no
-user-provided constructors (\ref{class.ctor}),
-no \grammarterm{brace-or-equal-initializer}{s} for non-static data
-members~(\ref{class.mem}),
-no private or protected non-static data members (Clause~\ref{class.access}),
-no base classes (Clause~\ref{class.derived}),
+is an array or a class (clause~\ref{class}) with no
+user-declared constructors (\ref{class.ctor}),
+no private or protected non-static data members (clause~\ref{class.access}),
+no base classes (clause~\ref{class.derived}),
 and no virtual functions (\ref{class.virtual}).
 
 \pnum
-When an aggregate is initialized by an initializer list, as specified in~\ref{dcl.init.list}, the elements of the initializer list are taken as initializers
-for the members of the aggregate,
-in increasing subscript or member order.
-Each member is copy-initialized from the corresponding \grammarterm{initializer-clause}. If the \grammarterm{initializer-clause} is an expression and a narrowing conversion~(\ref{dcl.init.list}) is required to convert the expression, the program is ill-formed. \enternote If an \grammarterm{initializer-clause} is itself an initializer list, the member is list-initialized, which will result in a recursive application of the rules in this section if the member is an aggregate. \exitnote
+When an aggregate is initialized the \grammarterm{initializer} can contain
+an \grammarterm{initializer-clause} consisting of a brace-enclosed,
+comma-separated list of \grammarterm{initializer-clause}{s} for the
+members of the aggregate, written in increasing subscript or member order.
+If the aggregate contains subaggregates, this rule applies recursively
+to the members of the subaggregate.
 \enterexample
 \begin{codeblock}
 struct A {
-  int x;
-  struct B {
-    int i;
-    int j;
-  } b;
+	int x;
+	struct B {
+		int i;
+		int j;
+	} b;
 } a = { 1, { 2, 3 } };
 \end{codeblock}
 
@@ -2849,7 +2385,7 @@ brace-enclosed
 \grammarterm{initializer-list}
 containing
 \tcode{n}
-\grammarterm{initializer-clause}{s},
+\grammarterm{initializer}{s},
 where
 \tcode{n}
 shall be greater than zero, is defined as having
@@ -2868,43 +2404,40 @@ since no size was specified and there are three initializers.
 \exitexample
 An empty initializer list
 \tcode{\{\}}
-shall not be used as the \grammarterm{initializer-clause }
+shall not be used as the initializer
 for an array of unknown bound.\footnote{The syntax provides for empty
 \grammarterm{initializer-list}{s},
 but nonetheless \Cpp does not have zero length arrays.}
 
 \pnum
-Static data members and anonymous bit-fields are not considered
+Static data members are not considered
 members of the class for purposes of aggregate initialization.
 \enterexample
 
 \begin{codeblock}
 struct A {
-  int i;
-  static int s;
-  int j;
-  int :17;
-  int k;
-} a = { 1, 2, 3 };
+	int i;
+	static int s;
+	int j;
+} a = { 1, 2 };
 \end{codeblock}
 
 Here, the second initializer 2 initializes
 \tcode{a.j}
 and not the static data member
-\tcode{A::s}, and the third initializer 3 initializes \tcode{a.k}
-and not the anonymous bit-field before it.
+\tcode{A::s}.
 \exitexample
 
 \pnum
 An
 \grammarterm{initializer-list}
 is ill-formed if the number of
-\grammarterm{initializer-clause}{s} 
+\grammarterm{initializer}{s} 
 exceeds the number of members or elements to initialize.
 \enterexample
 
 \begin{codeblock}
-char cv[4] = { 'a', 's', 'd', 'f', 0 };     // error
+char cv[4] = { 'a', 's', 'd', 'f', 0 };		// error
 \end{codeblock}
 
 is ill-formed.
@@ -2912,11 +2445,10 @@ is ill-formed.
 
 \pnum
 If there are fewer
-\grammarterm{initializer-clause}{s} 
+\grammarterm{initializer}{s} 
 in the list than there are members in the aggregate,
 then each member not explicitly initialized
-shall be
-initialized from an empty initializer list~(\ref{dcl.init.list}).
+shall be value-initialized~(\ref{dcl.init}).
 \enterexample
 
 \begin{codeblock}
@@ -2938,41 +2470,33 @@ that is,
 \exitexample
 
 \pnum
-If an aggregate class \tcode{C} contains a subaggregate member
-\tcode{m} that has no members for purposes of aggregate initialization,
-the \grammarterm{initializer-clause} for \tcode{m} shall not be
-omitted from an \grammarterm{initializer-list} for an object of type
-\tcode{C} unless the \grammarterm{initializer-clause}{s} for all
-members of \tcode{C} following \tcode{m} are also omitted.
+An \grammarterm{initializer} for an aggregate member that is an empty
+class shall have the form of an empty \grammarterm{initializer-list}
+\tcode{\{\}}.
 \enterexample
 
 \begin{codeblock}
-struct S { } s;
+struct S { };
 struct A {
-  S s1;
-  int i1;
-  S s2;
-  int i2;
-  S s3;
-  int i3;
-} a = {
-  { },      // Required initialization
-  0,
-  s,        // Required initialization
-  0
-};          // Initialization not required for \tcode{A::s3} because \tcode{A::i3} is also not initialized
+	S s;
+	int i;
+} a = { { } , 3 };
 \end{codeblock}
-\exitexample
+\exitexampleb
+An empty initializer-list can be used to initialize any aggregate.
+If the aggregate is not an empty class, then each member of the
+aggregate shall be initialized with a value of the form
+\tcode{T()}~(\ref{expr.type.conv}), where \tcode{T} represents the
+type of the uninitialized member.
 
 \pnum
-If an incomplete or empty
-\grammarterm{initializer-list}
-leaves a member of reference type uninitialized, the program is ill-formed.
+If an incomplete or empty \grammarterm{initializer-list} leaves a member
+of reference type uninitialized, the program is ill-formed.
 
 \pnum
 When initializing a multi-dimensional array,
 the
-\grammarterm{initializer-clause}{s}
+\grammarterm{initializer}{s}
 initialize the elements with the last (rightmost) index of the array
 varying the fastest (\ref{dcl.array}).
 \enterexample
@@ -2999,7 +2523,7 @@ On the other hand,
 
 \begin{codeblock}
 float y[4][3] = {
-  { 1 }, { 2 }, { 3 }, { 4 }
+    { 1 }, { 2 }, { 3 }, { 4 }
 };
 \end{codeblock}
 
@@ -3010,41 +2534,35 @@ and leaves the rest zero.
 \exitexample
 
 \pnum
-In a declaration of the form
-
-\begin{codeblock}
-T x = { a };
-\end{codeblock}
-
-braces can be elided in an
+Braces can be elided in an
 \grammarterm{initializer-list}
-as follows.\footnote{Braces cannot be elided in other uses of list-initialization.}
+as follows.
 If the
 \grammarterm{initializer-list}
 begins with a left brace,
 then the succeeding comma-separated list of
-\grammarterm{initializer-clause}{s}
+\grammarterm{initializer}{s}
 initializes the members of a subaggregate;
 it is erroneous for there to be more
-\grammarterm{initializer-clause}{s}
+\grammarterm{initializer}{s}
 than members.
 If, however, the
 \grammarterm{initializer-list}
 for a subaggregate does not begin with a left brace,
 then only enough
-\grammarterm{initializer-clause}{s}
+\grammarterm{initializer}{s}
 from the list are taken to initialize the members of the subaggregate;
 any remaining
-\grammarterm{initializer-clause}{s}
+\grammarterm{initializer}{s}
 are left to initialize the next member of the aggregate
 of which the current subaggregate is a member.
 \enterexample
 
 \begin{codeblock}
 float y[4][3] = {
-  { 1, 3, 5 },
-  { 2, 4, 6 },
-  { 3, 5, 7 },
+    { 1, 3, 5 },
+    { 2, 4, 6 },
+    { 3, 5, 7 },
 };
 \end{codeblock}
 
@@ -3061,7 +2579,7 @@ Likewise the next two lines initialize
 and
 \tcode{y[2]}.
 The initializer ends early and therefore
-\tcode{y[3]}s
+\tcode{y[3]}'s
 elements are initialized as if explicitly initialized with an
 expression of the form
 \tcode{float()},
@@ -3078,7 +2596,7 @@ of the above example,
 
 \begin{codeblock}
 float y[4][3] = {
-  1, 3, 5, 2, 4, 6, 3, 5, 7
+    1, 3, 5, 2, 4, 6, 3, 5, 7
 };
 \end{codeblock}
 
@@ -3092,40 +2610,36 @@ Likewise the next three are taken successively for
 \tcode{y[1]}
 and
 \tcode{y[2]}.
-\exitexample
+\exitexampleb
 
 \pnum
-All implicit type conversions (Clause~\ref{conv}) are considered when
-initializing the aggregate member with an \grammarterm{assignment-expression}.
+All implicit type conversions (clause~\ref{conv}) are considered when
+initializing the aggregate member with an initializer from an
+\grammarterm{initializer-list}.
 If the
-\grammarterm{assignment-expression}
+\grammarterm{initializer}
 can initialize a member, the member is initialized.
-Otherwise, if the member is itself a subaggregate,
+Otherwise, if the member is itself a non-empty subaggregate,
 brace elision is assumed and the
-\grammarterm{assignment-expression}
-is considered for the initialization of the first member of the subaggregate.
-\enternote As specified above, brace elision cannot apply to
-subaggregates with no members for purposes of aggregate initialization; an
-\grammarterm{initializer-clause} for the entire subobject is
-required.\exitnote
-
+\grammarterm{initializer}
+is considered for the initialization of the first member of the subaggregate.\\
 \enterexample
 
 \begin{codeblock}
 struct A {
-  int i;
-  operator int();
+    int i;
+    operator int();
 };
 struct B {
-  A a1, a2;
-  int z;
+    A a1, a2;
+    int z;
 };
 A a;
 B b = { 4, a, a };
 \end{codeblock}
 
 Braces are elided around the
-\grammarterm{initializer-clause}
+\grammarterm{initializer}
 for
 \tcode{b.a1.i}.
 \tcode{b.a1.i}
@@ -3143,36 +2657,40 @@ returns.
 \indextext{initialization!array~of class~objects}%
 \enternote
 An aggregate array or an aggregate class may contain members of a
-class type with a user-provided constructor (\ref{class.ctor}).
+class type with a user-declared constructor (\ref{class.ctor}).
 Initialization of these aggregate objects is described in~\ref{class.expl.init}.
 \exitnote
 
 \pnum
-\enternote Whether the initialization of aggregates with static storage duration is static or dynamic is specified in~\ref{basic.start.init} and~\ref{stmt.dcl}. \exitnote
+When an aggregate with static storage duration is initialized with a
+brace-enclosed \grammarterm{initializer-list}, if all the member
+initializer expressions are constant expressions, and the aggregate is a
+POD type, the initialization shall be done during the static phase of
+initialization~(\ref{basic.start.init}); otherwise, it is unspecified
+whether the initialization of members with constant expressions take
+place during the static phase or during the dynamic phase of initialization.
 
 \pnum
 \indextext{initialization!\idxcode{union}}%
 When a union is initialized with a brace-enclosed initializer,
 the braces shall only contain an
-\grammarterm{initializer-clause}
-for the first non-static data member of the union.
+initializer
+for the first member of the union.
 \enterexample
 
 \begin{codeblock}
 union u { int a; const char* b; };
+
 u a = { 1 };
 u b = a;
 u c = 1;                        // error
 u d = { 0, "asdf" };            // error
 u e = { "asdf" };               // error
 \end{codeblock}
-\exitexample
-
-\pnum
+\exitexampleb
 \enternote
-As described above,
-the braces around the
-\grammarterm{initializer-clause}
+as described above,
+the braces around the initializer
 for a union member can be omitted if the
 union is a member of another aggregate.
 \exitnote
@@ -3189,18 +2707,17 @@ array (whether plain
 \tcode{char},
 or
 \tcode{unsigned}
-\tcode{char}),
-\tcode{char16_t} array,
-\tcode{char32_t} array,
-or \tcode{wchar_t} array
+\tcode{char})
 can be initialized by a
-narrow character literal, \tcode{char16_t} string literal, \tcode{char32_t} string
-literal, or wide string literal,
-respectively, or by an appropriately-typed string literal enclosed in braces.
+\grammarterm{string-literal} (optionally enclosed in braces);
+a
+\tcode{wchar_t}
+array can be initialized by a wide
+\grammarterm{string-literal} (optionally enclosed in braces);
 \indextext{initialization!character~array}%
-Successive
+successive
 characters of the
-value of the string literal
+\grammarterm{string-literal}
 initialize the elements of the array.
 \enterexample
 
@@ -3234,17 +2751,13 @@ is ill-formed since there is no space for the implied trailing
 \tcode{'\textbackslash 0'}.
 \exitexample
 
-\pnum
-If there are fewer initializers than there are array elements, each element not
-explicitly initialized shall be zero-initialized~(\ref{dcl.init}).
-
 \rSec2[dcl.init.ref]{References}%
 \indextext{initialization!reference}
 
 \pnum
 A variable declared to be a
-\tcode{T\&} or \tcode{T\&\&},
-that is, ``reference to type
+\tcode{T\&},
+that is ``reference to type
 \tcode{T}''
 (\ref{dcl.ref}),
 shall be initialized by an object, or function, of type
@@ -3255,20 +2768,21 @@ or by an object that can be converted into a
 
 \begin{codeblock}
 int g(int);
-void f() {
-  int i;
-  int& r = i;                   // \tcode{r} refers to \tcode{i}
-  r = 1;                        // the value of \tcode{i} becomes \tcode{1}
-  int* p = &r;                  // \tcode{p} points to \tcode{i}
-  int& rr = r;                  // \tcode{rr} refers to what \tcode{r} refers to, that is, to \tcode{i}
-  int (&rg)(int) = g;           // \tcode{rg} refers to the function \tcode{g}
-  rg(i);                        // calls function \tcode{g}
-  int a[3];
-  int (&ra)[3] = a;             // \tcode{ra} refers to the array \tcode{a}
-  ra[1] = i;                    // modifies \tcode{a[1]}
+void f()
+{
+    int i;
+    int& r = i;                 // \tcode{r} refers to \tcode{i}
+    r = 1;                      // the value of \tcode{i} becomes \tcode{1}
+    int* p = &r;                // \tcode{p} points to \tcode{i}
+    int& rr = r;                // \tcode{rr} refers to what \tcode{r} refers to, that is, to \tcode{i}
+    int (&rg)(int) = g;         // \tcode{rg} refers to the function \tcode{g}
+    rg(i);                      // calls function \tcode{g}
+    int a[3];
+    int (&ra)[3] = a;           // \tcode{ra} refers to the array \tcode{a}
+    ra[1] = i;                  // modifies \tcode{a[1]}
 }
 \end{codeblock}
-\exitexample
+\exitexampleb
 
 \pnum
 A reference cannot be changed to refer to another object after initialization.
@@ -3293,7 +2807,7 @@ specifier is explicitly used.
 int& r1;                        // error: initializer missing
 extern int& r2;                 // OK
 \end{codeblock}
-\exitexample
+\exitexampleb
 
 \pnum
 Given types ``\nonterminal{cv1} \tcode{T1}'' and ``\nonterminal{cv2} \tcode{T2},''
@@ -3331,7 +2845,7 @@ is a base class of
 \tcode{T2},
 a program that necessitates such a binding is ill-formed if
 \tcode{T1}
-is an inaccessible (Clause~\ref{class.access}) or ambiguous (\ref{class.member.lookup})
+is an inaccessible (clause~\ref{class.access}) or ambiguous (\ref{class.member.lookup})
 base class of
 \tcode{T2}.
 
@@ -3342,7 +2856,7 @@ an expression of type ``\cvqual{cv2} \tcode{T2}'' as follows:%
 
 \begin{itemize}
 \item
-If the reference is an lvalue reference and the initializer expression
+If the initializer expression
 
 \begin{itemize}
 \item
@@ -3353,7 +2867,7 @@ bit-field), and
 \item
 has a class type (i.e.,
 \tcode{T2}
-is a class type), where \tcode{T1} is not reference-related to \tcode{T2}, and can be implicitly converted
+is a class type) and can be implicitly converted
 to an lvalue of type ``\nonterminal{cv3} \tcode{T3},'' where
 ``\nonterminal{cv1} \tcode{T1}'' is reference-compatible with
 ``\nonterminal{cv3} \tcode{T3}''\footnote{This requires a conversion
@@ -3362,16 +2876,16 @@ function~(\ref{class.conv.fct}) returning a reference type.}
 functions (\ref{over.match.ref}) and choosing the best one through overload
 resolution (\ref{over.match})),
 \end{itemize}
-then the reference is bound to the initializer expression lvalue in the
-first case and to the lvalue result of the conversion
-in the second case (or, in either case, to the appropriate base class subobject of the object).
+then the reference is bound directly to the initializer expression lvalue in the
+first case, and the reference is bound to the lvalue result of the conversion
+in the second case. In these cases the reference is said to
+\term{bind directly} to the initializer expression
 \enternote
-The usual lvalue-to-rvalue (\ref{conv.lval}), array-to-pointer
+the usual lvalue-to-rvalue (\ref{conv.lval}), array-to-pointer
 (\ref{conv.array}), and function-to-pointer (\ref{conv.func}) standard
 conversions are not needed, and therefore are suppressed, when such
 direct bindings to lvalues are done.
-\exitnote
-
+\exitnote\\
 \enterexample
 
 \begin{codeblock}
@@ -3380,19 +2894,18 @@ double& rd = d;                 // \tcode{rd} refers to \tcode{d}
 const double& rcd = d;          // \tcode{rcd} refers to \tcode{d}
 
 struct A { };
-struct B : A { operator int&(); } b;
+struct B : public A { } b;
 A& ra = b;                      // \tcode{ra} refers to \tcode{A} subobject in \tcode{b}
 const A& rca = b;               // \tcode{rca} refers to \tcode{A} subobject in \tcode{b}
-int& ir = B();                  // \tcode{ir} refers to the result of \tcode{B::operator int\&}
 \end{codeblock}
-\exitexample
+\exitexampleb
 
 \item
-Otherwise, the reference shall be an lvalue reference to a non-volatile
+Otherwise, the reference shall be to a non-volatile
 const type (i.e.,
 \textit{cv1}
 shall be
-\tcode{const}), or the reference shall be an rvalue reference.
+\tcode{const}).
 \enterexample
 
 \begin{codeblock}
@@ -3400,53 +2913,46 @@ double& rd2 = 2.0;              // error: not an lvalue and reference not \tcode
 int  i = 2;
 double& rd3 = i;                // error: type mismatch and reference not \tcode{const}
 \end{codeblock}
-\exitexample
+\exitexampleb
 
 \begin{itemize}
 \item If the initializer expression
+is an rvalue, with \tcode{T2} a class type, and
+``\cvqual{cv1} \tcode{T1}'' is
+reference-compatible with ``\cvqual{cv2} \tcode{T2}''
+the reference is bound in one of the following ways (the choice is
+implementation-defined):
 
 \begin{itemize}
-\item is an xvalue, class prvalue, array prvalue or function lvalue and
-``\cvqual{cv1} \tcode{T1}'' is
-reference-compatible with ``\cvqual{cv2} \tcode{T2}'', or
-
-\item has a class type (i.e., \tcode{T2} is a class type), where \tcode{T1}
-is not reference-related to \tcode{T2}, and can be implicitly converted to
-an xvalue, class prvalue, or function lvalue of type ``\cvqual{cv3} \tcode{T3}'',
-where ``\cvqual{cv1} \tcode{T1}'' is
-reference-compatible with ``\cvqual{cv3} \tcode{T3}'',
-
+\item
+The reference is bound to the object represented by the rvalue
+(see~\ref{basic.lval}) or to a sub-object within that object.
+\item
+A temporary of type ``\cvqual{cv1} \tcode{T2}'' [sic] is created,
+and a constructor is called to copy the entire rvalue object into
+the temporary. The reference is bound to the temporary or to a
+sub-object within the temporary.\footnote{Clearly, if the reference
+initialization being processed is one for the first argument of a
+copy constructor call, an implementation must eventually choose the
+first alternative (binding without copying) to avoid infinite recursiion.}
 \end{itemize}
 
-then the reference is bound to the value of the initializer expression in the first
-case and to the result of the conversion in the second case (or, in either case, to
-an appropriate base class subobject). In the second case, if the reference is an
-rvalue reference and the second standard conversion sequence of the user-defined
-conversion sequence includes an lvalue-to-rvalue conversion, the program is ill-formed.
-
+The constructor that would be used to make the copy shall be callable
+whether or not the copy is actually done
 \enterexample
 
 \begin{codeblock}
 struct A { };
-struct B : A { } b;
+struct B : public A { } b;
 extern B f();
-const A& rca2 = f();                // bound to the \tcode{A} subobject of the \tcode{B} rvalue.
-A&& rra = f();                      // same as above
-struct X {
-  operator B();
-  operator int&();
-} x;
-const A& r = x;                     // bound to the \tcode{A} subobject of the result of the conversion
-int i2 = 42;
-int&& rri = static_cast<int&&>(i2); // bound directly to \tcode{i2}
-B&& rrb = x;                        // bound directly to the result of \tcode{operator B}
-int&& rri2 = X();                   // error: lvalue-to-rvalue conversion applied to the
-                                    // result of \tcode{operator int\&}
+const A& rca2 = f();            // Either bound to the \tcode{A} sub-object of the \tcode{B} rvalue,
+				// or the entire \tcode{B} object is copied and the reference
+				// is bound to the \tcode{A} sub-object of the copy
 \end{codeblock}
-\exitexample
+\exitexampleb
 
 \item
-Otherwise, a temporary of type ``\nonterminal{cv1} \tcode{T1}'' is created and
+Otherwise, a temporary of type ``\cvqual{cv1} \tcode{T1}'' is created and
 initialized from the initializer expression using the rules
 for a non-reference copy-initialization (\ref{dcl.init}).
 The reference is then bound to the temporary.
@@ -3455,321 +2961,22 @@ If
 is reference-related to
 \tcode{T2},
 \textit{cv1}
-shall be the same cv-qualification as, or greater cv-qualification than,
-\textit{cv2}.
-If \tcode{T1} is reference-related to \tcode{T2} and the reference is an rvalue reference,
-the initializer expression shall not be an lvalue.
+must be the same cv-qualification as, or greater cv-qualification than,
+\textit{cv2};
+otherwise, the program is ill-formed.
 \enterexample
 \begin{codeblock}
-const double& rcd2 = 2;         // \tcode{rcd2} refers to temporary with value \tcode{2.0}
-double&& rrd = 2;               // \tcode{rrd} refers to temporary with value \tcode{2.0}
+const double& rcd2 = 2;		// \tcode{rcd2} refers to temporary with value \tcode{2.0}
 const volatile int cvi = 1;
-const int& r2 = cvi;            // error: type qualifiers dropped
-double d2 = 1.0;
-double&& rrd2 = d2;             // error: copying lvalue of related type
-int i3 = 2;
-double&& rrd3 = i3;             // \tcode{rrd3} refers to temporary with value \tcode{2.0}
+const int& r = cvi;		// error: type qualifiers dropped
 \end{codeblock}
-\exitexample
+\exitexampleb
 \end{itemize}
-\end{itemize}
-
-In all cases except the last (i.e., creating and initializing a temporary from the
-initializer expression), the reference is said to \defn{bind directly} to the
-initializer expression.
 
 \pnum
 \enternote
 \ref{class.temporary} describes the lifetime of temporaries bound to references.
 \exitnote
-
-\rSec2[dcl.init.list]{List-initialization}%
-\indextext{initialization!list-initialization|(}
-
-\pnum
-\grammarterm{List-initialization} is initialization of an object or reference from a
-\grammarterm{braced-init-list}. Such an initializer is called an \term{initializer
-list}, and the comma-separated \grammarterm{initializer-clause}{s} of the list are
-called the \term{elements} of the initializer list. An initializer list may be empty.
-List-initialization can occur in direct-initialization or copy-initialization contexts;
-list-initialization in a direct-initialization context is called
-\grammarterm{direct-list-initialization} and list-initialization in a
-copy-initialization context is called \grammarterm{copy-list-initialization}. \enternote
-List-initialization can be used
-
-\begin{itemize}
-\item as the initializer in a variable definition~(\ref{dcl.init})
-\item as the initializer in a new expression~(\ref{expr.new})
-\item in a return statement~(\ref{stmt.return})
-\item as a function argument~(\ref{expr.call})
-\item as a subscript~(\ref{expr.sub})
-\item as an argument to a constructor invocation~(\ref{dcl.init},~\ref{expr.type.conv})
-\item as an initializer for a non-static data member~(\ref{class.mem})
-\item in a \grammarterm{mem-initializer}~(\ref{class.base.init})
-\item on the right-hand side of an assignment (\ref{expr.ass})
 \end{itemize}
-
-\enterexample
-\begin{codeblock}
-int a = {1};
-std::complex<double> z{1,2};
-new std::vector<std::string>{"once", "upon", "a", "time"};  // 4 string elements
-f( {"Nicholas","Annemarie"} );  // pass list of two elements
-return { "Norah" };             // return list of one element
-int* e {};                      // initialization to zero / null pointer
-x = double{1};                  // explicitly construct a double 
-std::map<std::string,int> anim = { {"bear",4}, {"cassowary",2}, {"tiger",7} };
-\end{codeblock}
-\exitexample \exitnote
-
-\pnum
-A constructor is an \grammarterm{initializer-list constructor} if its first parameter is
-of type \tcode{std::initializer_list<E>} or reference to possibly cv-qualified
-\tcode{std::initializer_list<E>} for some type \tcode{E}, and either there are no other
-parameters or else all other parameters have default arguments (\ref{dcl.fct.default}).
-\enternote Initializer-list constructors are favored over other constructors in
-list-initialization~(\ref{over.match.list}).\exitnote The template
-\tcode{std::initializer_list} is not predefined; if the header
-\tcode{<initializer_list>} is not included prior to a use of
-\tcode{std::initializer_list} --- even an implicit use in which the type is not
-named~(\ref{dcl.spec.auto}) --- the program is ill-formed.
-
-\pnum
-List-initialization of an object or reference of type \tcode{T} is defined as follows:
-\begin{itemize}
-\item If the initializer list has no elements and \tcode{T} is a class type with a
-default constructor, the object is value-initialized.
-
-\item Otherwise, if \tcode{T} is an aggregate, aggregate initialization is
-performed~(\ref{dcl.init.aggr}).
-
-\enterexample
-\begin{codeblock}
-double ad[] = { 1, 2.0 };           // OK
-int ai[] = { 1, 2.0 };              // error: narrowing
-
-struct S2 {
-  int m1;
-  double m2, m3;
-};
-S2 s21 = { 1, 2, 3.0 };             // OK
-S2 s22 { 1.0, 2, 3 };               // error: narrowing
-S2 s23 { };                         // OK: default to 0,0,0
-\end{codeblock}
-\exitexample
-
-\item Otherwise, if \tcode{T} is a specialization of \tcode{std::initializer_list<E>},
-an \tcode{initializer_list} object is constructed as described below and used to
-initialize the object according to the rules for initialization of an object from a
-class of the same type~(\ref{dcl.init}).
-
-\item Otherwise, if \tcode{T} is a class type, constructors are considered.
-The applicable constructors are enumerated and
-the best one is chosen through overload resolution (\ref{over.match},~\ref{over.match.list}). If a narrowing
-conversion (see below) is required to convert any of the arguments, the program is
-ill-formed.
-
-\enterexample
-\begin{codeblock}
-struct S {
-  S(std::initializer_list<double>); // \#1
-  S(std::initializer_list<int>);    // \#2
-  S();                              // \#3
-  // ...
-};
-S s1 = { 1.0, 2.0, 3.0 };           // invoke \#1
-S s2 = { 1, 2, 3 };                 // invoke \#2
-S s3 = { };                         // invoke \#3
-\end{codeblock}
-\exitexample
-
-\enterexample
-\begin{codeblock}
-struct Map {
-  Map(std::initializer_list<std::pair<std::string,int>>);
-};
-Map ship = {{"Sophie",14}, {"Surprise",28}};
-\end{codeblock}
-\exitexample
-
-\enterexample
-\begin{codeblock}
-struct S {
-  // no initializer-list constructors
-  S(int, double, double);           // \#1
-  S();                              // \#2
-  // ...
-};
-S s1 = { 1, 2, 3.0 };               // OK: invoke \#1
-S s2 { 1.0, 2, 3 };                 // error: narrowing
-S s3 { };                           // OK: invoke \#2
-\end{codeblock}
-\exitexample
-
-\item Otherwise, if \tcode{T} is a reference type, a prvalue temporary of the type
-referenced by \tcode{T} is list-initialized, and the reference is bound to that
-temporary. \enternote As usual, the binding will fail and the program is ill-formed if
-the reference type is an lvalue reference to a non-const type. \exitnote
-
-\enterexample
-\begin{codeblock}
-struct S {
-  S(std::initializer_list<double>); // \#1
-  S(const std::string&);            // \#2
-  // ...
-};
-const S& r1 = { 1, 2, 3.0 };        // OK: invoke \#1
-const S& r2 { "Spinach" };          // OK: invoke \#2
-S& r3 = { 1, 2, 3 };                // error: initializer is not an lvalue
-const int& i1 = { 1 };              // OK
-const int& i2 = { 1.1 };            // error: narrowing
-const int (&iar)[2] = { 1, 2 };     // OK: \tcode{iar} is bound to temporary array
-\end{codeblock}
-\exitexample
-\item Otherwise, if
-the initializer list has a single element, the object or reference
-is initialized from that element;
-if a narrowing conversion (see below) is required to convert the element to \tcode{T},
-the program is ill-formed.
-
-\enterexample
-\begin{codeblock}
-int x1 {2};                         // OK
-int x2 {2.0};                       // error: narrowing
-\end{codeblock}
-\exitexample
-
-\item Otherwise, if the initializer list has no elements, the object is
-value-initialized.
-
-\enterexample
-\begin{codeblock}
-int** pp {};                        // initialized to null pointer
-\end{codeblock}
-\exitexample
-
-\item Otherwise, the program is ill-formed.
-
-\enterexample
-\begin{codeblock}
-struct A { int i; int j; };
-A a1 { 1, 2 };                      // aggregate initialization 
-A a2 { 1.2 };                       // error: narrowing
-struct B {
-  B(std::initializer_list<int>);
-};
-B b1 { 1, 2 };                      // creates initializer_list<int> and calls constructor
-B b2 { 1, 2.0 };                    // error: narrowing
-struct C {
-  C(int i, double j);
-};
-C c1 = { 1, 2.2 };                  // calls constructor with arguments (1, 2.2) 
-C c2 = { 1.1, 2 };                  // error: narrowing
-
-int j { 1 };                        // initialize to 1
-int k { };                          // initialize to 0
-\end{codeblock}
-\exitexample
-
-\end{itemize}
-
-\pnum
-Within the \grammarterm{initializer-list} of a \grammarterm{braced-init-list},
-the \grammarterm{initializer-clause}{s}, including any that result from pack
-expansions~(\ref{temp.variadic}), are evaluated in the order in which they
-appear. That is, every value computation and side effect associated with a
-given \grammarterm{initializer-clause} is sequenced before every value
-computation and side effect associated with any \grammarterm{initializer-clause}
-that follows it in the comma-separated list of the \grammarterm{initializer-list}.
-\enternote This evaluation ordering holds regardless of the semantics of the
-initialization; for example, it applies when the elements of the
-\grammarterm{initializer-list} are interpreted as arguments of a constructor
-call, even though ordinarily there are no sequencing constraints on the
-arguments of a call. \exitnote
-
-\pnum
-An object of type \tcode{std::initializer_list<E>} is constructed from an initializer list as if the implementation allocated an array of $N$ elements of type \tcode{E}, where $N$ is the number of elements in the initializer list. Each element of that array is copy-initialized with the corresponding element of the initializer list, and the \tcode{std::initializer_list<E>} object is constructed to refer to that array. If a narrowing conversion is required to initialize any of the elements, the program is ill-formed.\enterexample
-\begin{codeblock}
-struct X {
-  X(std::initializer_list<double> v);
-};
-X x{ 1,2,3 };
-\end{codeblock}
-
-The initialization will be implemented in a way roughly equivalent to this:
-
-\begin{codeblock}
-double __a[3] = {double{1}, double{2}, double{3}};
-X x(std::initializer_list<double>(__a, __a+3));
-\end{codeblock}
-
-assuming that the implementation can construct an \tcode{initializer_list} object with a pair of pointers. \exitexample
-
-\pnum
-The lifetime of the array is the same as that of the \tcode{initializer_list} object. \enterexample
-
-\begin{codeblock}
-typedef std::complex<double> cmplx;
-std::vector<cmplx> v1 = { 1, 2, 3 };
-
-void f() {
-  std::vector<cmplx> v2{ 1, 2, 3 };
-  std::initializer_list<int> i3 = { 1, 2, 3 };
-}
-\end{codeblock}
-
-For \tcode{v1} and \tcode{v2}, the \tcode{initializer_list} object and array created for \tcode{\{ 1, 2, 3 \}} have full-expression lifetime. For \tcode{i3}, the \tcode{initializer_list} object and array have automatic lifetime. \exitexample \enternote The implementation is free to allocate the array in read-only memory if an explicit array with the same initializer could be so allocated. \exitnote
-
-\pnum
-A
-\indextext{narrowing conversion}%
-\indextext{conversion!narrowing}%
-\term{narrowing conversion} is an implicit conversion
-
-\begin{itemize}
-\item from a floating-point type to an integer type, or
-
-\item from \tcode{long double} to \tcode{double} or \tcode{float}, or from
-\tcode{double} to \tcode{float}, except where the source is a constant expression and
-the actual value after conversion
-is within the range of values that can be represented (even if it cannot be represented exactly),
-or
-
-\item from an integer type or unscoped enumeration type to a floating-point type, except
-where the source is a constant expression and the actual value after conversion will fit
-into the target type and will produce the original value when converted back to the
-original type, or
-
-\item from an integer type or unscoped enumeration type to an integer type that cannot
-represent all the values of the original type, except where the source is a constant
-expression and the actual value after conversion will fit into the target type and will
-produce the original value when converted back to the original type.
-\end{itemize}
-
-\enternote As indicated above, such conversions are not allowed at the top level in
-list-initializations.\exitnote \enterexample
-
-\begin{codeblock}
-int x = 999;              // x is not a constant expression
-const int y = 999;
-const int z = 99;
-char c1 = x;              // OK, though it might narrow (in this case, it does narrow)
-char c2{x};               // error: might narrow
-char c3{y};               // error: narrows (assuming \tcode{char} is 8 bits)
-char c4{z};               // OK: no narrowing needed
-unsigned char uc1 = {5};  // OK: no narrowing needed
-unsigned char uc2 = {-1}; // error: narrows
-unsigned int ui1 = {-1};  // error: narrows
-signed int si1 =
-  { (unsigned int)-1 };   // error: narrows
-int ii = {2.0};           // error: narrows
-float f1 { x };           // error: might narrow
-float f2 { 7 };           // OK: 7 can be exactly represented as a float
-int f(int);
-int a[] =
-  { 2, f(2), f(2.0) };    // OK: the double-to-int conversion is not at the top level
-\end{codeblock}
-\exitexample%
-\indextext{initialization!list-initialization|)}%
 \indextext{initialization|)}%
 \indextext{declarator|)}

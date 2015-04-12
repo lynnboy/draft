@@ -136,31 +136,34 @@
 \newcommand{\leftshift}[1]{\ensuremath{\, \mathsf{lshift}_#1 \,}}
 
 %% Notes and examples
-\newcommand{\EnterBlock}[1]{[\,\textit{#1:}\xspace}
-\newcommand{\ExitBlock}[1]{\textit{\,---\,end #1}\,]\xspace}
+\newcommand{\EnterBlock}[1]{[\textit{#1:}\xspace}
+\newcommand{\ExitBlockb}[1]{\textit{\,---end #1}]\xspace}
+\newcommand{\ExitBlock}[1]{\,]\xspace}
 \newcommand{\enternote}{\EnterBlock{Note}}
 \newcommand{\exitnote}{\ExitBlock{note}}
+\newcommand{\exitnoteb}{\ExitBlockb{note}}
 \newcommand{\enterexample}{\EnterBlock{Example}}
 \newcommand{\exitexample}{\ExitBlock{example}}
+\newcommand{\exitexampleb}{\ExitBlockb{example}}
 
 %% Library function descriptions
-\newcommand{\Fundescx}[1]{\textit{#1}\xspace}
+\newcommand{\Fundescx}[1]{\textbf{#1}\xspace}
 \newcommand{\Fundesc}[1]{\Fundescx{#1:}}
 \newcommand{\required}{\Fundesc{Required behavior}}
 \newcommand{\requires}{\Fundesc{Requires}}
 \newcommand{\effects}{\Fundesc{Effects}}
 \newcommand{\postconditions}{\Fundesc{Postconditions}}
 \newcommand{\postcondition}{\Fundesc{Postcondition}}
-\newcommand{\preconditions}{\requires}
-\newcommand{\precondition}{\requires}
+\newcommand{\preconditions}{\Fundesc{Preconditions}}
+\newcommand{\precondition}{\Fundesc{Precondition}}
 \newcommand{\returns}{\Fundesc{Returns}}
 \newcommand{\throws}{\Fundesc{Throws}}
 \newcommand{\default}{\Fundesc{Default behavior}}
 \newcommand{\complexity}{\Fundesc{Complexity}}
 \newcommand{\remark}{\Fundesc{Remark}}
 \newcommand{\remarks}{\Fundesc{Remarks}}
-\newcommand{\note}{\remark}
-\newcommand{\notes}{\remarks}
+\newcommand{\note}{\Fundesc{Note}}
+\newcommand{\notes}{\Fundesc{Notes}}
 \newcommand{\realnote}{\Fundesc{Note}}
 \newcommand{\realnotes}{\Fundesc{Notes}}
 \newcommand{\errors}{\Fundesc{Error conditions}}
@@ -246,7 +249,7 @@
         basicstyle=\small\CodeStyle,
         keywordstyle=,
         stringstyle=,
-        xleftmargin=1em,
+        xleftmargin=2em,
         showstringspaces=false,
         commentstyle=\itshape\rmfamily,
         columns=flexible,
@@ -281,7 +284,7 @@
 \lstnewenvironment{itemdecl}
 {
  \lstset{escapechar=@,
- xleftmargin=0em,
+% xleftmargin=0em,
  aboveskip=2ex,
  belowskip=0ex	% leave this alone: it keeps these things out of the
 				% footnote area
@@ -292,9 +295,10 @@
 
 \newenvironment{itemdescr}
 {
- \begin{indented}}
+% \begin{indented}}
+}
 {
- \end{indented}
+% \end{indented}
 }
 
 
@@ -467,9 +471,6 @@
 % usage: \definition{name}{xref}
 %\newcommand{\definition}[2]{\rSec2[#2]{#1}}
 % for ISO format, use:
-\newcommand{\definition}[2]
- {\hfill\vspace{.25ex plus .5ex minus .2ex}\\
- \addtocounter{subsection}{1}%
- \textbf{\thesubsection\hfill\relax[#2]}\\
- \textbf{#1}\label{#2}\\
- }
+\newcommand{\definition}[2]{%
+\subsection[#1]{\hfill[#2]}\vspace{-.3\onelineskip}\label{#2}\textbf{#1}\\%
+}

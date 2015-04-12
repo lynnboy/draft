@@ -1,13 +1,12 @@
 \rSec0[conv]{Standard conversions}
 
 \indextext{implicit~conversion|see{conversion, implicit}}
-\indextext{contextually converted to bool|see{conversion, contextual}}
 \indextext{rvalue!lvalue conversion to|see{conversion, lvalue to rvalue}}%
 
 \pnum
 \indextext{conversion!standard|(}%
 \indextext{conversion!implicit}%
-Standard conversions are implicit conversions with built-in meaning.
+Standard conversions are implicit conversions defined for built-in types.
 Clause~\ref{conv} enumerates the full set of such conversions. A
 \indextext{sequence!standard conversion}%
 \term{standard conversion sequence} is a sequence of standard
@@ -27,7 +26,7 @@ pointer to member conversions, and boolean conversions.
 \end{itemize}
 
 \enternote
-A standard conversion sequence can be empty, i.e., it can consist of no
+a standard conversion sequence can be empty, i.e., it can consist of no
 conversions. \exitnote A standard conversion sequence will be applied to
 an expression if necessary to convert it to a required destination type.
 
@@ -38,7 +37,7 @@ types in several contexts:
 
 \begin{itemize}
 \item When used as operands of operators. The operator's requirements
-for its operands dictate the destination type (Clause~\ref{expr}).
+for its operands dictate the destination type (clause~\ref{expr}).
 
 \item When used in the condition of an \tcode{if} statement or iteration
 statement~(\ref{stmt.select}, \ref{stmt.iter}). The destination type is
@@ -53,28 +52,19 @@ in a \tcode{return} statement). The type of the entity being initialized
 is (generally) the destination type.
 See~\ref{dcl.init},~\ref{dcl.init.ref}.
 \end{itemize}
-\exitnote 
+\exitnoteb
 
 \pnum
 An expression \tcode{e} can be
 \indextext{conversion!implicit}%
 \term{implicitly converted} to a type \tcode{T} if and only if the
-declaration \tcode{T t=e;} is well-formed, for some invented temporary
-variable \tcode{t}~(\ref{dcl.init}).
-Certain language constructs require that an expression be converted to a Boolean
-value. An expression \tcode{e} appearing in such a context is said to be
-\indextext{conversion!contextual}%
-\term{contextually converted to \tcode{bool}} and is well-formed if and only if
-the declaration \tcode{bool t(e);} is well-formed, for some invented temporary
-variable \tcode{t}~(\ref{dcl.init}).
-The effect of either implicit
+declaration ``\tcode{T t=e;}'' is well-formed, for some invented temporary
+variable \tcode{t}~(\ref{dcl.init}). The effect of the implicit
 conversion is the same as performing the declaration and initialization
 and then using the temporary variable as the result of the conversion.
-The result is an lvalue if \tcode{T} is an lvalue reference
-type or an rvalue reference to function type~(\ref{dcl.ref}),
-an xvalue if \tcode{T} is an rvalue reference to object type,
-and a prvalue otherwise. The expression \tcode{e}
-is used as a glvalue if and only if the initialization uses it as a glvalue.
+The result is an lvalue if \tcode{T} is a reference type~(\ref{dcl.ref}),
+and an rvalue otherwise. The expression \tcode{e}
+is used as an lvalue if and only if the initialization uses it as an lvalue.
 
 \pnum
 \enternote 
@@ -83,10 +73,8 @@ see~\ref{class.conv}. In general, an implicit conversion
 sequence~(\ref{over.best.ics}) consists of a standard conversion
 sequence followed by a user-defined conversion followed by another
 standard conversion sequence.
-\exitnote 
 
 \pnum
-\enternote 
 There are some contexts where certain conversions are suppressed. For
 example, the lvalue-to-rvalue conversion is not done on the operand of
 the unary \tcode{\&} operator. Specific exceptions are given in the
@@ -98,32 +86,24 @@ descriptions of those operators and contexts.
 \pnum
 \indextext{conversion!lvalue-to-rvalue}%
 \indextext{type!incomplete}%
-A glvalue~(\ref{basic.lval}) of a non-function, non-array type \tcode{T}
-can be converted to
-a prvalue.\footnote{For historical reasons, this conversion is called the ``lvalue-to-rvalue''
-conversion, even though that name does not accurately reflect the taxonomy
-of expressions described in~\ref{basic.lval}.}
-If \tcode{T} is an incomplete type, a
+An lvalue~(\ref{basic.lval}) of a non-function, non-array type \tcode{T}
+can be converted to an rvalue. If \tcode{T} is an incomplete type, a
 program that necessitates this conversion is ill-formed. If the object
-to which the glvalue refers is not an object of type \tcode{T} and is not
+to which the lvalue refers is not an object of type \tcode{T} and is not
 an object of a type derived from \tcode{T}, or if the object is
 uninitialized, a program that necessitates this conversion has undefined
-behavior. If \tcode{T} is a non-class type, the type of the prvalue is
+behavior. If \tcode{T} is a non-class type, the type of the rvalue is
 the cv-unqualified version of \tcode{T}. Otherwise, the type of the
-prvalue is \tcode{T}.\footnote{In \Cpp class prvalues can have cv-qualified types (because they are
+rvalue is \tcode{T}.\footnote{In \Cpp class rvalues can have cv-qualified types (because they are
 objects). This differs from ISO C, in which non-lvalues never have
 cv-qualified types.}
 
 \pnum
-When an lvalue-to-rvalue conversion occurs in an unevaluated operand or
-a subexpression thereof (Clause~\ref{expr}) the value contained in the
-referenced object is not accessed. Otherwise, if the glvalue has a class
-type, the conversion copy-initializes a temporary of type \tcode{T} from
-the glvalue and the result of the conversion is a prvalue for the
-temporary.
-Otherwise, if the glvalue has (possibly cv-qualified) type \tcode{std::nullptr_t}, the prvalue result is a null pointer constant~(\ref{conv.ptr}).
-Otherwise, the value contained in the object indicated by the
-glvalue is the prvalue result.
+The value contained in the object indicated by the lvalue is the
+rvalue result. When an lvalue-to-rvalue conversion occurs within the
+operand of \tcode{sizeof}~(\ref{expr.sizeof}) the value contained
+in the referenced object is not accessed, since that operator does
+not evaluate its operand.
 
 \pnum
 \enternote 
@@ -135,18 +115,34 @@ See also~\ref{basic.lval}.\exitnote
 \indextext{conversion!array-to-pointer}%
 \indextext{decay|see{conversion, array to pointer; conversion, function to pointer}}%
 An lvalue or rvalue of type ``array of \tcode{N} \tcode{T}'' or ``array
-of unknown bound of \tcode{T}'' can be converted to a prvalue of type
-``pointer to \tcode{T}''. The result is a pointer to the first element
+of unknown bound of \tcode{T}'' can be converted to an rvalue of type
+``pointer to \tcode{T}.'' The result is a pointer to the first element
 of the array.
+
+\pnum
+A string literal~(\ref{lex.string}) that is not a wide string literal
+can be converted to an rvalue of type ``pointer to \tcode{char}'';
+a wide string literal can be converted to an rvalue of type ``pointer to
+\tcode{wchar_t}''. In either case, the result is a pointer to the first
+element of the array. This conversion is considered only when there is
+an explicit appropriate pointer target type, and not when there is a
+general need to convert from an lvalue to an rvalue. \enternote this
+conversion is deprecated. See Annex~\ref{depr}. \exitnote For the
+purpose of ranking in overload resolution~(\ref{over.ics.scs}), this
+conversion is considered an array-to-pointer conversion followed by
+a qualification conversion~(\ref{conv.qual}). \enterexample \tcode{"abc"}
+is converted to ``pointer to \tcode{const} \tcode{char}'' as an
+array-to-pointer conversion, and then to ``pointer to \tcode{char}''
+as a qualification conversion. \exitexample
 
 \rSec1[conv.func]{Function-to-pointer conversion}
 
 \pnum
 \indextext{conversion!function-to-pointer}%
-An lvalue of function type \tcode{T} can be converted to a prvalue of
+An lvalue of function type \tcode{T} can be converted to an rvalue of
 type ``pointer to \tcode{T}.'' The result is a pointer to the
-function.\footnote{This conversion never applies to non-static member functions because an
-lvalue that refers to a non-static member function cannot be obtained.}
+function.\footnote{This conversion never applies to nonstatic member functions because an
+lvalue that refers to a nonstatic member function cannot be obtained.}
 
 \pnum
 \enternote 
@@ -158,16 +154,16 @@ is overloaded.
 
 \pnum
 \indextext{conversion!qualification|(}%
-A prvalue of type ``pointer to \cvqual{cv1} \tcode{T}'' can be
-converted to a prvalue of type ``pointer to \cvqual{cv2} \tcode{T}'' if
+An rvalue of type ``pointer to \cvqual{cv1} \tcode{T}'' can be
+converted to an rvalue of type ``pointer to \cvqual{cv2} \tcode{T}'' if
 ``\cvqual{cv2} \tcode{T}'' is more cv-qualified than ``\cvqual{cv1}
-\tcode{T}''.
+\tcode{T}.''
 
 \pnum
-A prvalue of type ``pointer to member of \tcode{X} of type \cvqual{cv1}
-\tcode{T}'' can be converted to a prvalue of type ``pointer to member
+An rvalue of type ``pointer to member of \tcode{X} of type \cvqual{cv1}
+\tcode{T}'' can be converted to an rvalue of type ``pointer to member
 of \tcode{X} of type \cvqual{cv2} \tcode{T}'' if ``\cvqual{cv2}
-\tcode{T}'' is more cv-qualified than ``\cvqual{cv1} \tcode{T}''.
+\tcode{T}'' is more cv-qualified than ``\cvqual{cv1} \tcode{T}.''
 
 \pnum
 \enternote 
@@ -216,20 +212,20 @@ then \tcode{const} is in every $\mathit{cv}_{2,k}$ for $0 < k < j$.
 
 \enternote 
 if a program could assign a pointer of type \tcode{T**} to a pointer of
-type \tcode{const} \tcode{T**} (that is, if line \tcode{\#1} below were
+type \tcode{const} \tcode{T**} (that is, if line \tcode{//1} below was
 allowed), a program could inadvertently modify a \tcode{const} object
-(as it is done on line \tcode{\#2}). For example,
+(as it is done on line \tcode{//2}). For example,
 
 \begin{codeblock}
 int main() {
-  const char c = 'c';
-  char* pc;
-  const char** pcc = &pc;       // \#1: not allowed
-  *pcc = &c;
-  *pc = 'C';                    // \#2: modifies a \tcode{const} object
+	const char c = 'c';
+	char* pc;
+	const char** pcc = &pc;		// 1: not allowed
+	*pcc = &c;
+	*pc = 'C';              // 2: modifies a \tcode{const} object
 }
 \end{codeblock}
-\exitnote 
+\exitnoteb
 
 
 \pnum
@@ -274,47 +270,22 @@ cv-qualifiers are the same as those used for similar pointer types.%
 
 \pnum
 \indextext{promotion!integral}%
-A prvalue of an integer type other than \tcode{bool}, \tcode{char16_t},
-\tcode{char32_t}, or \tcode{wchar_t} whose integer conversion
-rank~(\ref{conv.rank}) is less than the rank of \tcode{int} can be
-converted to a prvalue of type \tcode{int} if \tcode{int} can represent
-all the values of the source type; otherwise, the source prvalue can be
-converted to a prvalue of type \tcode{unsigned int}.
+An rvalue of type \tcode{char}, \tcode{signed char}, \tcode{unsigned char},
+\tcode{short int}, or \tcode{unsigned short int} can be
+converted to an rvalue of type \tcode{int} if \tcode{int} can represent
+all the values of the source type; otherwise, the source rvalue can be
+converted to an rvalue of type \tcode{unsigned int}.
 
 \pnum
-A prvalue of type \tcode{char16_t}, \tcode{char32_t}, or
-\tcode{wchar_t}~(\ref{basic.fundamental}) can be converted to a prvalue
-of the first of the following types that can represent all the values of
-its underlying type: \tcode{int}, \tcode{unsigned int}, \tcode{long}
-\tcode{int}, \tcode{unsigned long} \tcode{int}, \tcode{long long int},
-or \tcode{unsigned long long int}. If none of the types in that list can
-represent all the values of its underlying type, a prvalue of type
-\tcode{char16_t}, \tcode{char32_t}, or \tcode{wchar_t} can be converted
-to a prvalue of its underlying type.
+An rvalue of type \tcode{wchar_t}~(\ref{basic.fundamental}) or an
+enumeration type~(\ref{dcl.enum}) can be converted to an rvalue of
+the first of the following types that can represent all the values
+of its underlying type: \tcode{int}, \tcode{unsigned int},
+\tcode{long}, or \tcode{unsigned long}.
 
 \pnum
-A prvalue of an unscoped enumeration type whose underlying type is not
-fixed~(\ref{dcl.enum}) can be converted to a prvalue of the first of the following
-types that can represent all the values of the enumeration (i.e., the values in the
-range $b_\mathit{min}$ to $b_\mathit{max}$ as described in~\ref{dcl.enum}): \tcode{int},
-\tcode{unsigned int}, \tcode{long} \tcode{int}, \tcode{unsigned long} \tcode{int},
-\tcode{long long int}, or \tcode{unsigned long long int}. If none of the types in that
-list can represent all the values of the enumeration, a prvalue of an unscoped
-enumeration type can be converted to a prvalue of the extended integer type with lowest
-integer conversion rank~(\ref{conv.rank}) greater than the rank of \tcode{long}
-\tcode{long} in which all the values of the enumeration can be represented. If there are
-two such extended types, the signed one is chosen.
-
-\pnum
-A prvalue of an unscoped enumeration type whose underlying type is
-fixed~(\ref{dcl.enum}) can be converted to a prvalue of its underlying type. Moreover,
-if integral promotion can be applied to its underlying type, a prvalue of an unscoped
-enumeration type whose underlying type is fixed can also be converted to a prvalue of
-the promoted underlying type.
-
-\pnum
-A prvalue for an integral bit-field~(\ref{class.bit}) can be converted
-to a prvalue of type \tcode{int} if \tcode{int} can represent all the
+An rvalue for an integral bit-field~(\ref{class.bit}) can be converted
+to an rvalue of type \tcode{int} if \tcode{int} can represent all the
 values of the bit-field; otherwise, it can be converted to
 \tcode{unsigned int} if \tcode{unsigned int} can represent all the
 values of the bit-field. If the bit-field is larger yet, no integral
@@ -323,7 +294,7 @@ treated as any other value of that type for promotion purposes.
 
 \pnum
 \indextext{promotion!bool to int}%
-A prvalue of type \tcode{bool} can be converted to a prvalue of type
+An rvalue of type \tcode{bool} can be converted to an rvalue of type
 \tcode{int}, with \tcode{false} becoming zero and \tcode{true} becoming
 one.
 
@@ -334,7 +305,7 @@ These conversions are called \term{integral promotions}.
 
 \pnum
 \indextext{promotion!floating~point}%
-A prvalue of type \tcode{float} can be converted to a prvalue of type
+An rvalue of type \tcode{float} can be converted to an rvalue of type
 \tcode{double}. The value is unchanged.
 
 \pnum
@@ -344,9 +315,9 @@ This conversion is called \term{floating point promotion}.
 
 \pnum
 \indextext{conversion!integral}%
-A prvalue of an integer type can be converted to a prvalue of another
-integer type. A prvalue of an unscoped enumeration type can be converted to
-a prvalue of an integer type.
+An rvalue of an integer type can be converted to an rvalue of another
+integer type. An rvalue of an enumeration type can be converted to
+an rvalue of an integer type.
 
 \pnum
 \indextext{conversion!to unsigned}%
@@ -378,7 +349,7 @@ of integral conversions.
 
 \pnum
 \indextext{conversion!floating~point}%
-A prvalue of floating point type can be converted to a prvalue of
+An rvalue of floating point type can be converted to an rvalue of
 another floating point type. If the source value can be exactly
 represented in the destination type, the result of the conversion is
 that exact representation. If the source value is between two adjacent
@@ -394,7 +365,7 @@ the set of floating point conversions.
 
 \pnum
 \indextext{conversion!floating~to~integral}%
-A prvalue of a floating point type can be converted to a prvalue of an
+An rvalue of a floating point type can be converted to an rvalue of an
 integer type. The conversion truncates; that is, the fractional part is
 discarded.
 \indextext{value!undefined unrepresentable integral}%
@@ -408,14 +379,12 @@ If the destination type is \tcode{bool}, see~\ref{conv.bool}.
 \indextext{conversion!integral~to~floating}%
 \indextext{truncation}%
 \indextext{rounding}%
-A prvalue of an integer type or of an unscoped enumeration type can be converted to
-a prvalue of a floating point type. The result is exact if possible. If the value being
-converted is in the range of values that can be represented but the value cannot be
-represented exactly, it is an \impldef{value of result of inexact integer to
+An rvalue of an integer type or of an enumeration type can be converted to
+an rvalue of a floating point type. The result is exact if possible.
+Otherwise, it is an \impldef{value of result of inexact integer to
 floating-point conversion} choice of either the next lower or higher representable
-value. \enternote Loss of precision occurs if the integral value cannot be represented
-exactly as a value of the floating type. \exitnote If the value being converted is
-outside the range of values that can be represented, the behavior is undefined. If the
+value. \enternote loss of precision occurs if the integral value cannot be represented
+exactly as a value of the floating type. \exitnote If the
 source type is \tcode{bool}, the value \tcode{false} is converted to zero and the value
 \tcode{true} is converted to one.
 
@@ -427,42 +396,36 @@ source type is \tcode{bool}, the value \tcode{false} is converted to zero and th
 \indextext{constant!null pointer}%
 \indextext{value!null pointer}%
 A \term{null pointer constant} is an integral constant
-expression~(\ref{expr.const}) prvalue of integer type that evaluates to zero
-or a prvalue of type \tcode{std::nullptr_t}. A null pointer constant can be
-converted to a pointer type; the
+expression~(\ref{expr.const}) rvalue of integer type that evaluates to zero.
+A null pointer constant can be converted to a pointer type; the
 result is the \term{null pointer value} of that type and is
 distinguishable from every other value of
-object pointer or function pointer
-type.
-Such a conversion is called a \term{null pointer conversion}.
+pointer to object or pointer to function type.
 Two null pointer values of the same type shall compare
 equal. The conversion of a null pointer constant to a pointer to
 cv-qualified type is a single conversion, and not the sequence of a
 pointer conversion followed by a qualification
-conversion~(\ref{conv.qual}). A null pointer constant of integral type
-can be converted to a prvalue of type \tcode{std::nullptr_t}.
-\enternote The resulting prvalue is not a null pointer value. \exitnote
+conversion~(\ref{conv.qual}).
 
 \pnum
-A prvalue of type ``pointer to \cvqual{cv} \tcode{T},'' where \tcode{T}
-is an object type, can be converted to a prvalue of type ``pointer to
-\cvqual{cv} \tcode{void}''. The result of converting a ``pointer to
+An rvalue of type ``pointer to \cvqual{cv} \tcode{T},'' where \tcode{T}
+is an object type, can be converted to an rvalue of type ``pointer to
+\cvqual{cv} \tcode{void}.'' The result of converting a ``pointer to
 \cvqual{cv} \tcode{T}'' to a ``pointer to \cvqual{cv} \tcode{void}''
 points to the start of the storage location where the object of type
 \tcode{T} resides, as if the object is a most derived
 object~(\ref{intro.object}) of type \tcode{T} (that is, not a base class
-subobject). The null pointer value is converted to the null pointer
-value of the destination type.
+subobject).
 
 \pnum
-A prvalue of type ``pointer to \cvqual{cv} \tcode{D}'', where \tcode{D}
-is a class type, can be converted to a prvalue of type ``pointer to
-\cvqual{cv} \tcode{B}'', where \tcode{B} is a base class
-(Clause~\ref{class.derived}) of \tcode{D}. If \tcode{B} is an
-inaccessible (Clause~\ref{class.access}) or
+An rvalue of type ``pointer to \cvqual{cv} \tcode{D},'' where \tcode{D}
+is a class type, can be converted to an rvalue of type ``pointer to
+\cvqual{cv} \tcode{B},'' where \tcode{B} is a base class
+(clause~\ref{class.derived}) of \tcode{D}. If \tcode{B} is an
+inaccessible (clause~\ref{class.access}) or
 ambiguous~(\ref{class.member.lookup}) base class of \tcode{D}, a program
 that necessitates this conversion is ill-formed. The result of the
-conversion is a pointer to the base class subobject of the derived class
+conversion is a pointer to the base class sub-object of the derived class
 object. The null pointer value is converted to the null pointer value of
 the destination type.
 
@@ -475,40 +438,36 @@ the destination type.
 A null pointer constant~(\ref{conv.ptr}) can be converted to a pointer
 to member type; the result is the \term{null member pointer value}
 of that type and is distinguishable from any pointer to member not
-created from a null pointer constant.
-Such a conversion is called a \term{null member pointer conversion}.
-Two null member pointer values of
+created from a null pointer constant. Two null member pointer values of
 the same type shall compare equal. The conversion of a null pointer
 constant to a pointer to member of cv-qualified type is a single
 conversion, and not the sequence of a pointer to member conversion
 followed by a qualification conversion~(\ref{conv.qual}).
 
 \pnum
-A prvalue of type ``pointer to member of \tcode{B} of type \cvqual{cv}
-\tcode{T}'', where \tcode{B} is a class type, can be converted to
-a prvalue of type ``pointer to member of \tcode{D} of type \cvqual{cv}
-\tcode{T}'', where \tcode{D} is a derived class
-(Clause~\ref{class.derived}) of \tcode{B}. If \tcode{B} is an
-inaccessible (Clause~\ref{class.access}),
+An rvalue of type ``pointer to member of \tcode{B} of type \cvqual{cv}
+\tcode{T},'' where \tcode{B} is a class type, can be converted to
+an rvalue of type ``pointer to member of \tcode{D} of type \cvqual{cv}
+\tcode{T},'' where \tcode{D} is a derived class
+(clause~\ref{class.derived}) of \tcode{B}. If \tcode{B} is an
+inaccessible (clause~\ref{class.access}),
 ambiguous~(\ref{class.member.lookup}), or virtual~(\ref{class.mi}) base
-class of \tcode{D}, or a base class of a virtual base class of
-\tcode{D}, a program that necessitates this conversion is ill-formed.
+class of \tcode{D}, a program that necessitates this conversion is ill-formed.
 The result of the conversion refers to the same member as the pointer to
 member before the conversion took place, but it refers to the base class
 member as if it were a member of the derived class. The result refers to
 the member in \tcode{D}'s instance of \tcode{B}. Since the result has
-type ``pointer to member of \tcode{D} of type \cvqual{cv} \tcode{T}'',
+type ``pointer to member of \tcode{D} of type \cvqual{cv} \tcode{T},''
 it can be dereferenced with a \tcode{D} object. The result is the same
 as if the pointer to member of \tcode{B} were dereferenced with the
-\tcode{B} subobject of \tcode{D}. The null member pointer value is
+\tcode{B} sub-object of \tcode{D}. The null member pointer value is
 converted to the null member pointer value of the destination
 type.\footnote{The rule for conversion of pointers to members (from pointer to member
 of base to pointer to member of derived) appears inverted compared to
 the rule for pointers to objects (from pointer to derived to pointer to
-base)~(\ref{conv.ptr}, Clause~\ref{class.derived}). This inversion is
+base)~(\ref{conv.ptr}, clause~\ref{class.derived}). This inversion is
 necessary to ensure type safety. Note that a pointer to member is not
-an object pointer or a function pointer
-and the rules for conversions
+a pointer to object or a pointer to function and the rules for conversions
 of such pointers do not apply to pointers to members.
 \indextext{conversion!pointer to member!\idxcode{void*}}%
 In particular, a pointer to member cannot be converted to a
@@ -518,63 +477,7 @@ In particular, a pointer to member cannot be converted to a
 
 \pnum
 \indextext{conversion!boolean}%
-A prvalue of arithmetic, unscoped enumeration, pointer, or pointer to member
-type can be converted to a prvalue of type \tcode{bool}. A zero value, null
+An rvalue of arithmetic, enumeration, pointer, or pointer to member
+type can be converted to an rvalue of type \tcode{bool}. A zero value, null
 pointer value, or null member pointer value is converted to \tcode{false}; any
-other value is converted to \tcode{true}. A prvalue of type
-\tcode{std::nullptr_t} can be converted to a prvalue of type
-\tcode{bool}; the resulting value is \tcode{false}.
-
-\rSec1[conv.rank]{Integer conversion rank}%
-\indextext{conversion!integer rank}
-
-\pnum
-Every integer type has an \term{integer conversion rank} defined as follows:
-
-\begin{itemize}
-\item No two signed integer types other than \tcode{char} and \tcode{signed
-char} (if \tcode{char} is signed) shall have the same rank, even if they have
-the same representation.
-
-\item The rank of a signed integer type shall be greater than the rank
-of any signed integer type with a smaller size.
-
-\item The rank of \tcode{long} \tcode{long} \tcode{int} shall be greater
-than the rank of \tcode{long} \tcode{int}, which shall be greater than
-the rank of \tcode{int}, which shall be greater than the rank of
-\tcode{short} \tcode{int}, which shall be greater than the rank of
-\tcode{signed} \tcode{char}.
-
-\item The rank of any unsigned integer type shall equal the rank of the
-corresponding signed integer type.
-
-\item The rank of any standard integer type shall be greater than the
-rank of any extended integer type with the same size.
-
-\item The rank of \tcode{char} shall equal the rank of \tcode{signed}
-\tcode{char} and \tcode{unsigned} \tcode{char}.
-
-\item The rank of \tcode{bool} shall be less than the rank of all other
-standard integer types.
-
-\item The ranks of \tcode{char16_t}, \tcode{char32_t}, and
-\tcode{wchar_t} shall equal the ranks of their underlying
-types~(\ref{basic.fundamental}).
-
-\item The rank of any extended signed integer type relative to another
-extended signed integer type with the same size is \impldef{rank of extended signed
-integer type}, but still subject to the other rules for determining the integer
-conversion rank.
-
-\item For all integer types \tcode{T1}, \tcode{T2}, and \tcode{T3}, if
-\tcode{T1} has greater rank than \tcode{T2} and \tcode{T2} has greater
-rank than \tcode{T3}, then \tcode{T1} shall have greater rank than
-\tcode{T3}.
-\end{itemize}
-
-\enternote
-The integer conversion rank is used in the definition of the integral
-promotions~(\ref{conv.prom}) and the usual arithmetic
-conversions (Clause~\ref{expr}).
-\exitnote%
-\indextext{conversion!standard|)}
+other value is converted to \tcode{true}.
